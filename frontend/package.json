@@ -1,0 +1,30 @@
+{
+  "name": "website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@nextui-org/accordion": "^2.0.28",
+    "@nextui-org/react": "^2.2.10",
+    "axios": "^1.6.8",
+    "chart.js": "^4.4.2",
+    "dotenv": "^16.4.5",
+    "fs": "^0.0.1-security",
+    "lodash": "^4.17.21",
+    "next": "14.1.4",
+    "react": "^18",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18",
+    "react-spinners": "^0.13.8",
+    "viem": "^2.9.9"
+  },
+  "devDependencies": {
+    "eslint": "^8",
+    "eslint-config-next": "14.1.4"
+  }
+}
