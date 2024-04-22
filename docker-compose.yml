@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+    environment:
+      POSTGRES_HOST: database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: logs_bdd
+      PORT_SERVER: 8000
+      CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
+    volumes:
+      - ./backend:/usr/src/app/
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app/
+
+
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: logs_bdd
+    volumes:
+        - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
+        - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
+        - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
+
+volumes:
+  postgres_data:
