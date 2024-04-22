@@ -134,7 +134,6 @@ export default function Wallet() {
         const networkId = await window.ethereum.request({
           method: "eth_chainId",
         });
-        console.log(networkId);
         if (networkId !== networks.sepolia.chainId) {
           const userResponse = window.confirm(
             "Please switch to Sepolia testnet network to use this application. Do you want to switch now?"
