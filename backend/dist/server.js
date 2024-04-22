@@ -18,6 +18,7 @@ const logger_js_1 = require("./utils/logger.js");
     };
     const manager = new Manager_js_1.Manager(config);
     try {
+        logger_js_1.loggerServer.warn("wwwwwwwwwwwwwwwwwwwwwww");
         manager.startServer();
     }
     catch (error) {

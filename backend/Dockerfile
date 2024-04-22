@@ -1,4 +1,4 @@
-FROM node:21
+FROM node:21 AS backend
 
 WORKDIR /usr/src/app
 
@@ -7,7 +7,5 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-
-EXPOSE 3000
 
 CMD ["npm", "run", "dev"]

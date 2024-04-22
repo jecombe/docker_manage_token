@@ -12,11 +12,11 @@ export class DataBase {
 
   constructor() {
     this.pool = new Pool({
-      user: process.env.USR,
-      password: process.env.PASSWORD,
-      host: process.env.HOST,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      host: process.env.POSTGRES_HOST,
       // port: process.env.PORT,
-      database: process.env.DB
+      database: process.env.POSTGRES_DB
     });
   }
 
