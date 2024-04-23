@@ -3,7 +3,8 @@ version: '3.7'
 services:
   backend:
     build: ./backend
-    network_mode: host
+    ports:
+      - "8000:8000"
     depends_on:
       - database
     environment:
@@ -23,7 +24,7 @@ services:
     depends_on:
       - backend
     environment:
-      SERVER: http://localhost:8000
+      SERVER: http://backend:8000
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
