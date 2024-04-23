@@ -1,36 +1,38 @@
 version: '3.7'
+
 services:
   backend:
     build: ./backend
     ports:
-      - "5000:5000"  # Lier le port 5000 du conteneur au port 5000 de l'hôte
+      - "8000:8000"
+    networks:
+      - app-network
+    depends_on:
+      - database
     environment:
       POSTGRES_HOST: database
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: test
       POSTGRES_DB: logs_bdd
-      PORT_SERVER: 5000  # Assurez-vous que votre application écoute sur le port 5000
+      PORT_SERVER: 8000
       CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./backend:/usr/src/app/
-    depends_on:
-      - database
-    networks:
-      - app-network
-      
+
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
+    networks:
+      - app-network
+      - network-frontend
+    depends_on:
+      - backend
     environment:
       SERVER: http://backend:8000
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
-    depends_on:
-      - backend
-    networks:
-      - app-network
 
   database:
     image: postgres:latest
@@ -38,13 +40,14 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: test
       POSTGRES_DB: logs_bdd
+    networks:
+      - app-network
     volumes:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
-    networks:
-      - app-network
 
 networks:
   app-network:
     driver: bridge
+  network-frontend:
