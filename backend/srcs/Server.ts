@@ -30,12 +30,22 @@ export class Server extends DataBase {
   }
 
   startApp(): void {
-    app.use(cors());
+
+
+    //json
     app.use(express.json());
-    app.use(express.urlencoded({ extended: false }));
+
+    //cors
+    app.use((req, res, next) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      next();
+    });
     app.listen(port, () => {
       loggerServer.info(`Server is listening on port ${port}`);
     });
+
   }
 
   getAllVolumesDaily(): void {
@@ -62,7 +72,7 @@ export class Server extends DataBase {
         setTimeout(async () => {
           this.contract?.startAfterReset();
         }, 10000);
-          
+
         res.json("delete database ok");
       } catch (error) {
         loggerServer.fatal(`delete-database: ${req.ip}`, error);
@@ -198,7 +208,7 @@ export class Server extends DataBase {
       this.saveTx(readAll);
       const allVolumes: ResultVolume[] = await this.getAllVolumes();
       this.saveTime(allVolumes);
-            
+
       this.contract?.startListeningEvents();
     } catch (error) {
       loggerServer.error("start", error);
