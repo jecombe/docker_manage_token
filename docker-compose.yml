@@ -7,8 +7,6 @@ services:
       - "8000:8000"
     depends_on:
       - database
-    networks:
-      - backend
     environment:
       POSTGRES_HOST: database
       POSTGRES_USER: postgres
@@ -24,8 +22,6 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - backend
-    networks:
       - backend
     environment:
       SERVER: http://backend:8000
@@ -43,6 +39,3 @@ services:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
-networks:
-  backend:
-    driver: bridge
