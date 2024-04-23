@@ -3,9 +3,7 @@ version: '3.7'
 services:
   backend:
     build: ./backend
-    networks:
-      - app-network
-      - network-frontend
+    network_mode: host  # Utiliser le réseau de l'hôte
     depends_on:
       - database
     environment:
@@ -20,13 +18,10 @@ services:
 
   frontend:
     build: ./frontend
-    networks:
-      - app-network
-      - network-frontend
     depends_on:
       - backend
     environment:
-      SERVER: http://backend:8000  # Accès au backend via le nom du service dans Docker Compose
+      SERVER: http://localhost:8000  # Accès au backend via localhost
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
@@ -41,9 +36,3 @@ services:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
-
-networks:
-  app-network:
-    driver: bridge
-  network-frontend:
-    external: true  # Utiliser un réseau externe pour la communication entre le frontend et le backend
