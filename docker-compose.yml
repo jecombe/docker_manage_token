@@ -43,6 +43,6 @@ services:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
-  networks:
-    backend:
-      driver: bridge
+networks:
+  backend:
+    driver: bridge
