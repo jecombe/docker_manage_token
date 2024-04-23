@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - mern-app
+      - app-network
     depends_on:
       - database
     environment:
@@ -18,12 +18,13 @@ services:
       CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./backend:/usr/src/app/
+
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
     networks:
-      - mern-app
+      - app-network
     depends_on:
       - backend
     environment:
@@ -31,6 +32,7 @@ services:
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
+
   database:
     image: postgres:latest
     environment:
@@ -38,14 +40,15 @@ services:
       POSTGRES_PASSWORD: test
       POSTGRES_DB: logs_bdd
     networks:
-      - mern-app
+      - app-network
     volumes:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
 
-  networks:
-    mern-app:
-      driver: bridge
+networks:
+  app-network:
+    driver: bridge
+
 volumes:
   postgres_data:
