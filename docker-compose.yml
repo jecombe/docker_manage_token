@@ -50,5 +50,5 @@ services:
 
 networks:
   app-network:
-    driver: bridge
+    driver: local
   network-frontend:
