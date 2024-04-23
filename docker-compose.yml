@@ -28,7 +28,7 @@ services:
     depends_on:
       - backend
     environment:
-      SERVER: http://localhost:8000
+      SERVER: http://35.181.166.229:8000
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
