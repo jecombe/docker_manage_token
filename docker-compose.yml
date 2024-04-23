@@ -16,6 +16,9 @@ services:
       CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./backend:/usr/src/app/
+    networks:
+      - app-network
+
   frontend:
     build: ./frontend
     ports:
@@ -23,10 +26,13 @@ services:
     depends_on:
       - backend
     environment:
-      SERVER: http://35.181.166.229:8000
+      SERVER: http://backend:8000
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
+    networks:
+      - app-network
+
   database:
     image: postgres:latest
     environment:
@@ -37,6 +43,8 @@ services:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
+    networks:
+      - app-network
 
-volumes:
-  postgres_data:
+networks:
+  app-network:
