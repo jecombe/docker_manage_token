@@ -33,7 +33,6 @@ services:
 
   database:
     image: postgres:latest
-    network_mode: bridge
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: test
