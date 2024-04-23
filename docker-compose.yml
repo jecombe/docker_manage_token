@@ -1,16 +1,15 @@
 version: '3.7'
-
 services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "5000:5000"  # Lier le port 5000 du conteneur au port 5000 de l'hôte
     environment:
       POSTGRES_HOST: database
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: test
       POSTGRES_DB: logs_bdd
-      PORT_SERVER: 8000
+      PORT_SERVER: 5000  # Assurez-vous que votre application écoute sur le port 5000
       CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./backend:/usr/src/app/
@@ -18,6 +17,7 @@ services:
       - database
     networks:
       - app-network
+
 
   frontend:
     build: ./frontend
