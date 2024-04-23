@@ -34,9 +34,9 @@ services:
       POSTGRES_PASSWORD: test
       POSTGRES_DB: logs_bdd
     volumes:
-        - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
-        - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
-        - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
+      - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
+      - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
+      - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
 
 volumes:
   postgres_data:
