@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const req = async (funcApi, params = {}) => {
-    return axios.get(`http://localhost:8000${funcApi}`, { params })
+    return axios.get(`${process.env.SERVER}${funcApi}`, { params })
 
 }
 
 export const deleteBdd = async () => {
-    return axios.delete('http://localhost:8000/api/delete-database')
+    return axios.delete(`${process.env.SERVER}/api/delete-database`)
 }
 
 export const fetchAllLogs = async () => {
