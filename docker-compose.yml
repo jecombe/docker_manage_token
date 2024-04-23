@@ -16,13 +16,15 @@ services:
       CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./backend:/usr/src/app/
-
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
+    environment:
+      SERVER: http://backend:8000
+      CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
 
