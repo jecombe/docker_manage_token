@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - app-network
+      - default  # Utiliser le réseau par défaut
       - network-frontend
     depends_on:
       - database
@@ -19,21 +19,29 @@ services:
       CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./backend:/usr/src/app/
+    # Définir un alias pour le service backend
+    container_name: backend
+    networks_aliases:
+      - backend
 
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
     networks:
-      - app-network
+      - default  # Utiliser le réseau par défaut
       - network-frontend
     depends_on:
       - backend
     environment:
-      SERVER: http://localhost:8000
+      SERVER: http://backend:8000  # Utiliser l'alias du service backend
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
+    # Définir un alias pour le service frontend
+    container_name: frontend
+    networks_aliases:
+      - frontend
 
   database:
     image: postgres:latest
@@ -41,14 +49,19 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: test
       POSTGRES_DB: logs_bdd
+    # Utiliser le réseau par défaut
     networks:
-      - app-network
+      - default
+
     volumes:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
 
 networks:
-  app-network:
+  default:
     driver: bridge
   network-frontend:
+    # Définir un alias pour le réseau frontend
+    driver: bridge
+    name: network-frontend
