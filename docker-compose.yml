@@ -3,7 +3,11 @@ version: '3.7'
 services:
   backend:
     build: ./backend
-    network_mode: host  # Utiliser le réseau de l'hôte
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+      - network-frontend
     depends_on:
       - database
     environment:
@@ -18,10 +22,15 @@ services:
 
   frontend:
     build: ./frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+      - network-frontend
     depends_on:
       - backend
     environment:
-      SERVER: http://localhost:8000  # Accès au backend via localhost
+      SERVER: http://backend:8000
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
@@ -32,7 +41,14 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: test
       POSTGRES_DB: logs_bdd
+    networks:
+      - app-network
     volumes:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
+
+networks:
+  app-network:
+    driver: bridge
+  network-frontend:
