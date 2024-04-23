@@ -30,7 +30,10 @@ export class Server extends DataBase {
   }
 
   startApp(): void {
-    app.use(cors());
+    const corsOptions = {
+      origin: 'http://frontend:3000' // Remplacez 'http://frontend:3000' par l'URL réelle de votre frontend
+    };
+    app.use(cors(corsOptions));
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
     app.listen(port, () => {
