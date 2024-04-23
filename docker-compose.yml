@@ -24,7 +24,7 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - app-network
+      - backend
     depends_on:
       - backend
     environment:
@@ -40,14 +40,14 @@ services:
       POSTGRES_PASSWORD: test
       POSTGRES_DB: logs_bdd
     networks:
-      - app-network
+      - backend
     volumes:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
 
 networks:
-  app-network:
+  backend:
     driver: bridge
 
 volumes:
