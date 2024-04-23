@@ -3,8 +3,6 @@ version: '3.7'
 services:
   backend:
     build: ./backend
-    ports:
-      - "8000:8000"
     networks:
       - app-network
       - network-frontend
@@ -22,15 +20,13 @@ services:
 
   frontend:
     build: ./frontend
-    ports:
-      - "3000:3000"
     networks:
       - app-network
       - network-frontend
     depends_on:
       - backend
     environment:
-      SERVER: http://backend:8000
+      SERVER: http://backend:8000  # Accès au backend via le nom du service dans Docker Compose
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
@@ -50,4 +46,4 @@ networks:
   app-network:
     driver: bridge
   network-frontend:
-    driver: bridge
+    external: true  # Utiliser un réseau externe pour la communication entre le frontend et le backend
