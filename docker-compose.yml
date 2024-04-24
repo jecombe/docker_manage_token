@@ -4,8 +4,6 @@ services:
   backend:
     container_name: backend
     build: ./backend
-    expose:
-      - "8000"
     environment:
       POSTGRES_HOST: database
       POSTGRES_USER: postgres
@@ -46,7 +44,7 @@ services:
     container_name: nginx
     image: nginx:latest
     ports:
-      - "8080:8080"
+      - "80:80"
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
