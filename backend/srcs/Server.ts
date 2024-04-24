@@ -30,18 +30,13 @@ export class Server extends DataBase {
   }
 
   startApp(): void {
-
-
-    //json
+    const corsOptions: cors.CorsOptions = {
+      origin: "*",
+      optionsSuccessStatus: 200,
+    };
+    app.use(cors(corsOptions));
     app.use(express.json());
-
-    //cors
-    app.use((req, res, next) => {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      next();
-    });
+    app.use(express.urlencoded({ extended: false }));
     app.listen(port, () => {
       loggerServer.info(`Server is listening on port ${port}`);
     });
@@ -60,7 +55,7 @@ export class Server extends DataBase {
       }
     });
   }
-  
+
   getAllVolumesDaily(): void {
     app.get("/api/get-all-volumes", async (req, res) => {
       try {
