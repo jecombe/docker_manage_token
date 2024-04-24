@@ -58,12 +58,12 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - /etc/letsencrypt/live/jeremy.training.real-estate-executive.com/fullchain.pem
-      - /etc/letsencrypt/live/jeremy.training.real-estate-executive.com/privkey.pem
+      - /etc/letsencrypt/live/jeremy.training.real-estate-executive.com:/etc/letsencrypt/live/jeremy.training.real-estate-executive.com
     depends_on:
       - frontend
     networks:
       - my_network
+
 networks:
   my_network:
     driver: bridge
