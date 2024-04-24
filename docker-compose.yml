@@ -21,8 +21,6 @@ services:
   frontend:
     container_name: frontend
     build: ./frontend
-    expose:
-      - "3000"
     environment:
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
