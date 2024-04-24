@@ -6,6 +6,8 @@ services:
     build: ./backend
     expose:
       - "8000"
+    ports:
+      - "8000:8000"
     depends_on:
       - database
     environment:
@@ -23,8 +25,8 @@ services:
   frontend:
     container_name: frontend
     build: ./frontend
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     depends_on:
       - backend
     environment:
@@ -47,28 +49,6 @@ services:
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
     networks:
       - my_network
-
-  nginx:
-    container_name: nginx
-    image: nginx:latest
-    ports:
-      - "8080:8080"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - frontend
-    networks:
-      - my_network
-  
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    command: certonly --webroot -w /var/www/certbot --force-renewal --email j.combe@ra2.tech -d jeremy.training.real-estate-executive.com --agree-tos
-
 networks:
   my_network:
     driver: bridge
