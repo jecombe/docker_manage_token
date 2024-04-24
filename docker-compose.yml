@@ -57,12 +57,6 @@ services:
       - frontend
     networks:
       - my_network
-      
-  certbot:
-    image: certbot/certbot:latest
-    volumes:
-      - ./certbot/www/:/var/www/certbot/:rw
-      - ./certbot/conf/:/etc/letsencrypt/:rw
 
 networks:
   my_network:
