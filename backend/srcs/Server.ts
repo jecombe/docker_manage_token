@@ -48,6 +48,19 @@ export class Server extends DataBase {
 
   }
 
+    getAllData(): void {
+    app.get("/api/get-all", async (req, res) => {
+      try {
+        loggerServer.trace(`get-all - Receive request from: ${req.ip}`);
+        res.json(await this.getData());
+      } catch (error) {
+        loggerServer.fatal(`get-all: ${req.ip}`, error);
+
+        res.status(500).send("Error intern server delete");
+      }
+    });
+  }
+  
   getAllVolumesDaily(): void {
     app.get("/api/get-all-volumes", async (req, res) => {
       try {
@@ -82,18 +95,7 @@ export class Server extends DataBase {
     });
   }
 
-  getAllData(): void {
-    app.get("/api/get-all", async (req, res) => {
-      try {
-        loggerServer.trace(`get-all - Receive request from: ${req.ip}`);
-        res.json(await this.getData());
-      } catch (error) {
-        loggerServer.fatal(`get-all: ${req.ip}`, error);
 
-        res.status(500).send("Error intern server delete");
-      }
-    });
-  }
 
   getAllLogsFromAddr(): void {
     app.get("/api/get-all-addr", async (req, res) => {

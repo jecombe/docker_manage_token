@@ -6,10 +6,6 @@ services:
     build: ./backend
     expose:
       - "8000"
-    ports:
-      - "8000:8000"
-    depends_on:
-      - database
     environment:
       POSTGRES_HOST: database
       POSTGRES_USER: postgres
@@ -25,10 +21,6 @@ services:
   frontend:
     container_name: frontend
     build: ./frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
     environment:
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
@@ -49,6 +41,21 @@ services:
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
     networks:
       - my_network
+
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - frontend
+    networks:
+      - my_network
+
 networks:
   my_network:
     driver: bridge
