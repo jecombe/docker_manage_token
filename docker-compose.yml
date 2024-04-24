@@ -19,6 +19,8 @@ services:
       CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./backend:/usr/src/app/
+    networks:
+      - my_network
 
   frontend:
     container_name: frontend
@@ -31,6 +33,8 @@ services:
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
       - ./frontend:/app/
+    networks:
+      - my_network
 
   database:
     container_name: database
@@ -43,3 +47,8 @@ services:
       - ./sql/create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
       - ./sql/create_table_volumes.sql:/docker-entrypoint-initdb.d/create_table_volumes.sql
       - ./sql/create_table_logs.sql:/docker-entrypoint-initdb.d/create_table_logs.sql
+    networks:
+      - my_network
+networks:
+  my_network:
+    driver: bridge

@@ -1,7 +1,16 @@
 import axios from 'axios';
 
-const url = 'http://backend:8000'; // Utilisation du nom du service du backend
+const url = 'http://172.26.8.16:8000'; // Utilisation du nom du service du backend
 
+export const fetchAllLogs = async () => {
+    try {
+        const response = await req("/api/get-all");
+        return response.data;
+
+    } catch (error) {
+        console.error('Une erreur s\'est produite lors de la récupération des données:', error);
+    }
+};
 
 
 
@@ -14,15 +23,6 @@ export const deleteBdd = async () => {
     return axios.delete(`${url}/api/delete-database`)
 }
 
-export const fetchAllLogs = async () => {
-    try {
-        const response = await req("/api/get-all");
-        return response.data;
-
-    } catch (error) {
-        console.error('Une erreur s\'est produite lors de la récupération des données:', error);
-    }
-};
 
 export const fetchAllLogsFromAddr = async (userAddress) => {
     try {
