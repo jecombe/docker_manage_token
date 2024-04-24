@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const url = 'http://backend:8000'; // Utilisation du nom du service du backend
+const url = 'http://13.36.191.244:8000';
 
 export const fetchAllLogs = async () => {
     try {
