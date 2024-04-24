@@ -16,11 +16,5 @@ COPY . .
 # Construisez l'application Next.js
 RUN npm run build
 
-EXPOSE 3000
-
-ENV PORT 3000
-# set hostname to localhost
-ENV HOSTNAME "0.0.0.0"
-
 # Commande par défaut pour démarrer l'application Next.js
 CMD ["npm", "run", "dev"]

@@ -21,6 +21,8 @@ services:
   frontend:
     container_name: frontend
     build: ./frontend
+    expose:
+      - "3000"
     environment:
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
     volumes:
@@ -46,7 +48,7 @@ services:
     container_name: nginx
     image: nginx:latest
     ports:
-      - "8080:80"
+      - "80:80"
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
@@ -55,6 +57,12 @@ services:
       - frontend
     networks:
       - my_network
+      
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
 
 networks:
   my_network:
