@@ -1,12 +1,17 @@
 import axios from 'axios';
 
+const url = 'http://backend:8000'; // Utilisation du nom du service du backend
+
+
+
+
 const req = async (funcApi, params = {}) => {
-    return axios.get(`${process.env.SERVER}${funcApi}`, { params })
+    return axios.get(`${url}${funcApi}`, { params })
 
 }
 
 export const deleteBdd = async () => {
-    return axios.delete(`${process.env.SERVER}/api/delete-database`)
+    return axios.delete(`${url}/api/delete-database`)
 }
 
 export const fetchAllLogs = async () => {
