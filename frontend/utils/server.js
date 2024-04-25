@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const url = 'http://13.36.191.244:8000';
+const url = 'https://jeremy.training.real-estate-executive.com';
 
 export const fetchAllLogs = async () => {
     try {
@@ -11,7 +11,6 @@ export const fetchAllLogs = async () => {
         console.error('Une erreur s\'est produite lors de la récupération des données:', error);
     }
 };
-
 
 
 const req = async (funcApi, params = {}) => {
