@@ -31,8 +31,10 @@ export class Server extends DataBase {
 
   startApp(): void {
     const corsOptions: cors.CorsOptions = {
-      origin: "*",
-      optionsSuccessStatus: 200,
+      origin: "*", // Autorise les requêtes depuis n'importe quelle origine
+      methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Autorise les méthodes HTTP spécifiées
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
     };
     app.use(cors(corsOptions));
     app.use(express.json());
