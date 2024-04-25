@@ -26,8 +26,8 @@ const VolumeChart = ({ data }) => {
     const [dataAsset, setDataAsset] = useState([]);
 
   useEffect(() => {
-    const labels = data.map(item => item.timestamp);
-    const volumes = data.map(item => Number(item.volume));
+    const labels = data.map(item => item.timestamp).reverse();
+    const volumes = data.map(item => Number(item.volume)).reverse();
     setLabels(labels)
     setDataAsset(volumes)
 
