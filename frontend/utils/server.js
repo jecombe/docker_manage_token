@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const url = 'https://jeremy.training.real-estate-executive.com';
+const url = 'http://13.36.191.244:8000/';
 
 export const fetchAllLogs = async () => {
     try {
