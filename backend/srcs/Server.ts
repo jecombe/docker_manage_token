@@ -10,6 +10,7 @@ import { Manager } from "./Manager.js";
 import { Contract } from "./Contract.js";
 import { Log } from "viem";
 import { LogEntry, ResultBdd, ResultVolume } from "../utils/interfaces.js";
+import { Server as SocketIOServer, Socket } from "socket.io";
 
 dotenv.config();
 
@@ -19,10 +20,24 @@ const port = process.env.PORT_SERVER;
 export class Server extends DataBase {
 
   public contract: Contract | null;
+  private io: SocketIOServer;
+
 
   constructor() {
     super();
     this.contract = null;
+    this.io = new SocketIOServer();
+  }
+
+  startWebSocketServer(): void {
+    loggerServer.info("Start websocket")
+    this.io.on("connection", (socket: Socket) => {
+      console.log("Client connected");
+
+          socket.on("disconnect", () => {
+        console.log("Client disconnected");
+      });
+    });
   }
 
   setManager(manager: Manager): void {
@@ -226,8 +241,8 @@ startFetchingLogs(): void {
       this.saveTx(readAll);
       const allVolumes: ResultVolume[] = await this.getAllVolumes();
       this.saveTime(allVolumes);
+      this.startWebSocketServer();
       this.startFetchingLogs();
-
       this.contract?.startListeningEvents();
     } catch (error) {
       loggerServer.error("start", error);
