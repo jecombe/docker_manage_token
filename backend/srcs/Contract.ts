@@ -5,7 +5,7 @@ import { loggerServer } from "../utils/logger.js";
 import { Viem } from "./Viem.js";
 import { Manager } from "./Manager.js";
 import _ from "lodash";
-import { calculateBlocksPerDay, removeTimeFromDate, subtractOneDay, waiting } from "../utils/utils.js";
+import { calculateBlocksPerDay, compareDates, removeTimeFromDate, subtractOneDay, waiting } from "../utils/utils.js";
 import { LogEntry, LogOwner, ParsedLog } from "../utils/interfaces.js";
 
 dotenv.config();
@@ -21,12 +21,15 @@ export class Contract extends Viem {
   timeVolume: Date | null;
   saveTime: Date[];
   isContractPrev: bigint;
+  saveBatch: Date | null
 
 
   constructor(manager: Manager) {
     super();
     this.manager = manager;
     this.timeVolume = null;
+    this.saveBatch = null;
+
     this.saveTx = [];
     this.saveTime = [];
     this.index = 0;
@@ -51,6 +54,7 @@ export class Contract extends Viem {
     this.index = 0;
     this.saveTime = [];
     this.saveTx = [];
+    this.saveBatch = null;
 
   }
 
@@ -238,6 +242,8 @@ export class Contract extends Viem {
 
   async getEventsLogsFrom(): Promise<boolean> {
     try {
+
+      let isFetchOtherDay = false;
       this.isContractPrev = BigInt(0);      
 
       if (!this.isFetching) return true;
@@ -248,7 +254,11 @@ export class Contract extends Viem {
 
       await this.sendLogsWithCheck(parsed);
 
-      this.index++;
+      if (this.saveBatch && this.timeVolume && !compareDates(this.saveBatch, this.timeVolume)) isFetchOtherDay = true
+
+      if (!this.saveBatch) isFetchOtherDay = true;
+
+      if (isFetchOtherDay) this.index++;
 
       if (this.timeVolume) this.timeVolume = subtractOneDay(this.timeVolume);
 
