@@ -211,8 +211,9 @@ export class Server extends DataBase {
 startFetchingLogs(): void {
   this.contract?.startListener((logs: Log[]) => {
     loggerServer.trace("Receive logs: ", logs);
-    const res = this.parseLogListener(logs)
-    console.log(res);
+    const finalParse = this.contract?.parseResult(this.parseLogListener(logs))
+
+    if (finalParse) this.contract?.sendLogsWithCheck(finalParse);
   });
 }
 
@@ -225,6 +226,7 @@ startFetchingLogs(): void {
       this.saveTx(readAll);
       const allVolumes: ResultVolume[] = await this.getAllVolumes();
       this.saveTime(allVolumes);
+      this.startFetchingLogs();
 
       this.contract?.startListeningEvents();
     } catch (error) {
