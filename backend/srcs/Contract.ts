@@ -21,7 +21,8 @@ export class Contract extends Viem {
   timeVolume: Date | null;
   saveTime: Date[];
   isContractPrev: bigint;
-  saveBatch: Date | null
+  saveBatch: Date | null;
+  contractAddr: string;
 
 
   constructor(manager: Manager) {
@@ -37,6 +38,7 @@ export class Contract extends Viem {
     this.blockNumber = BigInt(0);
     this.isContractPrev = BigInt(0);
     this.timePerRequest = this.getRateLimits();
+    this.contractAddr = `${process.env.CONTRACT}`;
   }
   async startAfterReset() {
     try {
@@ -146,7 +148,7 @@ export class Contract extends Viem {
 
   async getBatchLogs(fromBlock: bigint, toBlock: bigint): Promise<LogEntry[]> {
     return this.cliPublic.getLogs({
-      address: `0x${process.env.CONTRACT}`,
+      address: `0x${this.contractAddr}`,
       events: parseAbi([
         "event Approval(address indexed owner, address indexed sender, uint256 value)",
         "event Transfer(address indexed from, address indexed to, uint256 value)"
@@ -158,7 +160,7 @@ export class Contract extends Viem {
 
   async getLogsOwnerShip(fromBlock: bigint, toBlock: bigint): Promise<LogOwner[]> {
     return this.cliPublic.getLogs({
-      address: `0x${process.env.CONTRACT}`,
+      address:`0x${this.contractAddr}`,
       events: parseAbi([
         "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
       ]),
