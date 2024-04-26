@@ -49,6 +49,7 @@ export class DataBase {
       throw error;
     }
   }
+  
 
   async getAllDataFromAddr(fromAddress: string): Promise<ResultBdd[]> {
     const query: Query = {

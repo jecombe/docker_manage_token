@@ -1,12 +1,11 @@
 
 import dotenv from "dotenv";
-import { Log, WatchContractEventReturnType, formatEther, parseAbi } from "viem";
+import { formatEther, parseAbi } from "viem";
 import { loggerServer } from "../utils/logger.js";
 import { Viem } from "./Viem.js";
 import { Manager } from "./Manager.js";
 import _ from "lodash";
 import { calculateBlocksPerDay, removeTimeFromDate, subtractOneDay, waiting } from "../utils/utils.js";
-import abi from "../utils/abi.js";
 import { LogEntry, LogOwner, ParsedLog } from "../utils/interfaces.js";
 
 dotenv.config();
@@ -327,14 +326,6 @@ export class Contract extends Viem {
   };
 
 
-  startListener(callback: (logs: Log[]) => void): WatchContractEventReturnType {
-    loggerServer.info("Listening Events smart contract...");
-    return this.cliPublic.watchContractEvent({
-      address: `0x${process.env.CONTRACT}`,
-      abi,
-      onLogs: callback,
-    });
-  }
 
   async startListeningEvents(): Promise<void> {
     try {
