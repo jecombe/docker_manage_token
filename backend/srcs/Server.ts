@@ -9,7 +9,7 @@ import cors from "cors";
 import { Manager } from "./Manager.js";
 import { Contract } from "./Contract.js";
 import { Log } from "viem";
-import { ResultBdd, ResultVolume } from "../utils/interfaces.js";
+import { LogEntry, ResultBdd, ResultVolume } from "../utils/interfaces.js";
 
 dotenv.config();
 
@@ -192,12 +192,29 @@ export class Server extends DataBase {
     });
   }
 
+  parseLogListener(logs: Log[]): LogEntry[] {
+    const convertedLogs: LogEntry[] = logs.map((log: any) => {
+        const convertedLog: LogEntry = {
+            args: log.args,
+            eventName: log.eventName,
+          blockNumber: log.blockNumber,
+          transactionHash: log.transactionHash,
+        };
 
-  startFetchingLogs(): void {
-    this.contract?.startListener((logs: Log[]) => {
-      loggerServer.trace("Receive logs: ", logs);
+        return convertedLog;
     });
-  }
+
+    return convertedLogs;
+}
+
+
+startFetchingLogs(): void {
+  this.contract?.startListener((logs: Log[]) => {
+    loggerServer.trace("Receive logs: ", logs);
+    const res = this.parseLogListener(logs)
+    console.log(res);
+  });
+}
 
   async start(): Promise<void> {
     try {

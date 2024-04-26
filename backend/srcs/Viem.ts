@@ -22,7 +22,7 @@ export class Viem {
 
   connectPublicWs(): PublicClient {
     console.log(this.wsUrl);
-    
+
     return createPublicClient({
       chain: sepolia as Chain,
       transport: webSocket(this.wsUrl, {
@@ -48,10 +48,6 @@ export class Viem {
       transport: http(),
     });
   }
-
-
-
-
   startListener(callback: (logs: Log[]) => void): WatchContractEventReturnType {
     loggerServer.info("Listening Events smart contract...");
     return this.cliPublic.watchContractEvent({
