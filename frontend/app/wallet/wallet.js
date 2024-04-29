@@ -27,6 +27,8 @@ export default function Wallet() {
   const [owner, setOwner] = useState(null);
   const [currentNetwork, setCurrentNetwork] = useState(null);
   const [userResponse, setUserResponse] = useState(true);
+  const [data, setData] = useState({})
+
 
   const getInfos = async (address) => {
     try {
@@ -68,6 +70,7 @@ export default function Wallet() {
     socket.on("data", (data) => {
       console.log("Received message from server:", data);
       setShowPopup(true);
+      setData(data);
 
       setTimeout(() => {
         setShowPopup(false);
@@ -229,9 +232,10 @@ export default function Wallet() {
    {/* Affichage conditionnel du pop-up */}
    {showPopup && (
      <div className="popup">
-       {/* Contenu du pop-up */}
-       <p>Vous avez reçu de nouvelles données !</p>
-     </div>
+     {/* Contenu du pop-up */}
+     <p>name: {data.eventName}
+       value: {data.value}</p>
+   </div>
    )}
    {/* Le reste de votre composant */}
  </div>

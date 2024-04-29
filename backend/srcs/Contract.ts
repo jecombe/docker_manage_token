@@ -120,10 +120,12 @@ export class Contract extends Viem {
       for (const el of parsed) {
         if (!_.includes(this.saveTx, el.transactionHash)) {
 
-          const socketId = this.manager.users[el.to]
-
+          const socketIdTo = this.manager.users[el.to]
+          const socketIdFrom = this.manager.users[el.from]
           
-          this.manager.sendDataToClientWithAddress(socketId, el);
+          if (socketIdTo) this.manager.sendDataToClientWithAddress(socketIdTo, el);
+          if (socketIdFrom) this.manager.sendDataToClientWithAddress(socketIdFrom, el);
+
           await this.manager.insertDataLogs(el);
           this.saveTx.push(el.transactionHash);
         }
