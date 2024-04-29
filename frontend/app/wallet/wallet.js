@@ -6,6 +6,7 @@ import Matic from "../matic/matic";
 import Usdc from "../usdc/usdc";
 import Owner from "../owner/owner";
 import { createWallet, getBalanceUser, getReadFunction } from "@/utils/request";
+import io from "socket.io-client";
 
 import { networks } from "@/utils/networks";
 import "./wallet.css";
@@ -47,6 +48,26 @@ export default function Wallet() {
 
   useEffect(() => {
     checkNetwork();
+  }, []);
+
+  useEffect(() => {
+    const socket = io("ws://localhost:8000");
+  
+    socket.on("connect", () => {
+      console.log("Connected to WebSocket server");
+    });
+  
+    socket.on("disconnect", () => {
+      console.log("Disconnected from WebSocket server");
+    });
+  
+    socket.on("message", (data) => {
+      console.log("Received message from server:", data);
+    });
+  
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const updateBalance = async () => {

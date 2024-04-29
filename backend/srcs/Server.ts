@@ -11,11 +11,14 @@ import { Contract } from "./Contract.js";
 import { Log } from "viem";
 import { LogEntry, ResultBdd, ResultVolume } from "../utils/interfaces.js";
 import { Server as SocketIOServer, Socket } from "socket.io";
+import http from "http";
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT_SERVER;
+const server = http.createServer(app);
+
 
 export class Server extends DataBase {
 
@@ -26,7 +29,12 @@ export class Server extends DataBase {
   constructor() {
     super();
     this.contract = null;
-    this.io = new SocketIOServer();
+    this.io = new SocketIOServer(server, {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+      }
+    });
   }
 
   startWebSocketServer(): void {
@@ -34,7 +42,7 @@ export class Server extends DataBase {
     this.io.on("connection", (socket: Socket) => {
       console.log("Client connected");
 
-          socket.on("disconnect", () => {
+      socket.on("disconnect", () => {
         console.log("Client disconnected");
       });
     });
@@ -46,12 +54,12 @@ export class Server extends DataBase {
 
   startApp(): void {
     const corsOptions: cors.CorsOptions = {
-      origin: "*", 
+      origin: "*",
       methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
       preflightContinue: false,
       optionsSuccessStatus: 204,
     };
-    
+
     app.use(cors(corsOptions));
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
@@ -61,7 +69,7 @@ export class Server extends DataBase {
 
   }
 
-    getAllData(): void {
+  getAllData(): void {
     app.get("/api/get-all", async (req, res) => {
       try {
         loggerServer.trace(`get-all - Receive request from: ${req.ip}`);
@@ -209,28 +217,28 @@ export class Server extends DataBase {
 
   parseLogListener(logs: Log[]): LogEntry[] {
     const convertedLogs: LogEntry[] = logs.map((log: any) => {
-        const convertedLog: LogEntry = {
-            args: log.args,
-            eventName: log.eventName,
-          blockNumber: log.blockNumber,
-          transactionHash: log.transactionHash,
-        };
+      const convertedLog: LogEntry = {
+        args: log.args,
+        eventName: log.eventName,
+        blockNumber: log.blockNumber,
+        transactionHash: log.transactionHash,
+      };
 
-        return convertedLog;
+      return convertedLog;
     });
 
     return convertedLogs;
-}
+  }
 
 
-startFetchingLogs(): void {
-  this.contract?.startListener((logs: Log[]) => {
-    loggerServer.trace("Receive logs: ", logs);
-    const finalParse = this.contract?.parseResult(this.parseLogListener(logs))
+  startFetchingLogs(): void {
+    this.contract?.startListener((logs: Log[]) => {
+      loggerServer.trace("Receive logs: ", logs);
+      const finalParse = this.contract?.parseResult(this.parseLogListener(logs))
 
-    if (finalParse) this.contract?.sendLogsWithCheck(finalParse);
-  });
-}
+      if (finalParse) this.contract?.sendLogsWithCheck(finalParse);
+    });
+  }
 
   async start(): Promise<void> {
     try {

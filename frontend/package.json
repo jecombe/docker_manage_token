@@ -21,6 +21,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18",
     "react-spinners": "^0.13.8",
+    "socket.io-client": "^4.7.5",
     "viem": "^2.9.9"
   },
   "devDependencies": {
