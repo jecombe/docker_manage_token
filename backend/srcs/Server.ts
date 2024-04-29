@@ -39,8 +39,11 @@ export class Server extends DataBase {
 
   startWebSocketServer(): void {
     loggerServer.info("Start websocket")
-    this.io.on("connection", (socket: Socket) => {
-      console.log("Client connected");
+    this.io.on("connection", (socket: any) => {
+      loggerServer.trace("user connected",socket.handshake.query.address);
+      //this.sendWsToAllClients({ message: "Hello from server!" });
+      this.contract?.manager.addUsers(socket.id, socket.handshake.query.address)
+
 
       socket.on("disconnect", () => {
         console.log("Client disconnected");
@@ -57,7 +60,7 @@ export class Server extends DataBase {
   sendWsToAllClients(data: any) {
     this.io.emit("data", data)
   }
-  
+
   setManager(manager: Manager): void {
     this.contract = new Contract(manager);
   }
