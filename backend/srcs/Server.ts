@@ -23,7 +23,7 @@ const server = http.createServer(app);
 export class Server extends DataBase {
 
   public contract: Contract | null;
-  private io: SocketIOServer;
+  private io: SocketIOServer; 
 
 
   constructor() {
