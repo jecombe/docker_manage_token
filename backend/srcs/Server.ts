@@ -264,7 +264,7 @@ export class Server extends DataBase {
       this.saveTime(allVolumes);
       this.startWebSocketServer();
       this.startFetchingLogs();
-      this.contract?.startListeningEvents();
+  //    this.contract?.startListeningEvents();
     } catch (error) {
       loggerServer.error("start", error);
       throw error;
