@@ -76,7 +76,7 @@ export class Server extends DataBase {
     app.use(cors(corsOptions));
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
-    app.listen(port, () => {
+    server.listen(port, () => {
       loggerServer.info(`Server is listening on port ${port}`);
     });
 
