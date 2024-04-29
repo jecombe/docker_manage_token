@@ -20,6 +20,8 @@ export default function Wallet() {
 
   const [isConnect, setIsConnect] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+
 
   const [totalSupply, setTotalSupply] = useState(null);
   const [owner, setOwner] = useState(null);
@@ -50,25 +52,35 @@ export default function Wallet() {
     checkNetwork();
   }, []);
 
-  useEffect(() => {
-    const socket = io("ws://localhost:8000");
-  
+  const connectWs = (address) => {
+    console.log("CONNECTION", address);
+    const socket = io('wss://jeremy.training.real-estate-executive.com', {
+      query: { address }
+    });
     socket.on("connect", () => {
       console.log("Connected to WebSocket server");
     });
-  
+
     socket.on("disconnect", () => {
       console.log("Disconnected from WebSocket server");
     });
-  
-    socket.on("message", (data) => {
+
+    socket.on("data", (data) => {
       console.log("Received message from server:", data);
+      setShowPopup(true);
+
+      setTimeout(() => {
+        setShowPopup(false);
+      }, 5000);
     });
-  
+  }
+
+  /*useEffect(() => {
+
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, []);*/
 
   const updateBalance = async () => {
     try {
@@ -200,6 +212,7 @@ export default function Wallet() {
         setIsLoading(true);
         const client = createWallet();
         const [address] = await client.requestAddresses();
+        connectWs(address)
         await getInfos(address);
       } catch (error) {
         setIsConnect(false);
@@ -211,6 +224,17 @@ export default function Wallet() {
   }
 
   return (
+    <>
+    <div>
+   {/* Affichage conditionnel du pop-up */}
+   {showPopup && (
+     <div className="popup">
+       {/* Contenu du pop-up */}
+       <p>Vous avez reçu de nouvelles données !</p>
+     </div>
+   )}
+   {/* Le reste de votre composant */}
+ </div>
     <div
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
@@ -279,5 +303,6 @@ export default function Wallet() {
         <h1> Need to connect to your metamask </h1>
       )}
     </div>
+    </>
   );
 }
