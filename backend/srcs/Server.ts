@@ -48,6 +48,16 @@ export class Server extends DataBase {
     });
   }
 
+
+  // Fonction pour envoyer des données à un client spécifique avec une adresse Ethereum spécifique
+  sendDataToClientWithAddress(socketId: string, data: any) {
+    this.io.to(socketId).emit("data", data);
+  }
+
+  sendWsToAllClients(data: any) {
+    this.io.emit("data", data)
+  }
+  
   setManager(manager: Manager): void {
     this.contract = new Contract(manager);
   }
