@@ -51,13 +51,6 @@ export class Contract extends Viem {
   }
 
   async resetFetching() {
-
-   /* this.isFetching = false;
-    this.index = 0;
-    this.saveTime = [];
-    this.saveBatch = null;
-    this.saveTx = [];*/
-
     this.timeVolume = null;
     this.saveTx = [];
     this.saveTime = [];
@@ -66,8 +59,6 @@ export class Contract extends Viem {
     this.isFetching = false;
     this.blockNumber = BigInt(0);
     this.isContractPrev = BigInt(0);
-
-
   }
 
   parseNumberToEth(number: string) {
@@ -144,10 +135,9 @@ export class Contract extends Viem {
   }
 
 
-  async sendData(parsed: ParsedLog[], volume: number, isRealTime: boolean): Promise<void> {
+  async sendData(parsed: ParsedLog[], isRealTime: boolean): Promise<void> {
     try {
 
-      this.sendVolumeDaily(volume);
 
       for (const el of parsed) {
         if (!_.includes(this.saveTx, el.transactionHash)) {
@@ -236,11 +226,13 @@ export class Contract extends Viem {
     try {
       if (!_.isEmpty(parsed)) {
         const checkExisting: ParsedLog[] = this.isExist(parsed);
+        this.sendVolumeDaily(Number(this.calculateVolume(parsed)));
+
         if (!_.isEmpty(checkExisting)) {
 
           loggerServer.trace("Adding new thing: ", checkExisting, parsed, this.saveTx);
 
-          await this.sendData(checkExisting, Number(this.calculateVolume(parsed)), isRealTime);
+          await this.sendData(checkExisting,  isRealTime);
         } else {
           loggerServer.error("Log already existe", parsed);
         }
