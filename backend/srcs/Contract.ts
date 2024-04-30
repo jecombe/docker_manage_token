@@ -81,14 +81,14 @@ export class Contract extends Viem {
     return logs.reduce((accumulator: ParsedLog[], currentLog: LogEntry) => {
 
       const parsedLog: ParsedLog = this.initParsingLog(currentLog);
-      
+
       if (currentLog.eventName === "Transfer" && currentLog.args.from && currentLog.args.to) {
         parsedLog.from = currentLog.args.from;
         parsedLog.to = currentLog.args.to;
         parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
-      
+
       else if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
         parsedLog.from = currentLog.args.owner;
         parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || '';
@@ -106,7 +106,7 @@ export class Contract extends Viem {
   async sendVolumeDaily(volume: number): Promise<void> {
     if (this.timeVolume && !_.includes(this.saveTime, this.timeVolume)) {
 
-      this.manager.sendWsVolumeToAllClients([this.timeVolume, volume])
+      this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume })
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
       loggerServer.warn("is Exist");
@@ -186,7 +186,7 @@ export class Contract extends Viem {
 
   async getLogsOwnerShip(fromBlock: bigint, toBlock: bigint): Promise<LogOwner[]> {
     return this.cliPublic.getLogs({
-      address:`0x${this.contractAddr}`,
+      address: `0x${this.contractAddr}`,
       events: parseAbi([
         "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
       ]),
@@ -250,7 +250,7 @@ export class Contract extends Viem {
   async manageProcessRequest(): Promise<ParsedLog[]> {
 
     try {
-        
+
       const { fromBlock, toBlock } = this.getRangeBlock(BigInt(calculateBlocksPerDay(this.manager.config.timeBlock)));
 
       const batchLogs: LogEntry[] = await this.getBatchLogs(fromBlock, toBlock);
@@ -272,7 +272,7 @@ export class Contract extends Viem {
     try {
 
       let isFetchOtherDay = false;
-      this.isContractPrev = BigInt(0);      
+      this.isContractPrev = BigInt(0);
 
       if (!this.isFetching) return true;
 
@@ -308,7 +308,7 @@ export class Contract extends Viem {
   async newFetching(): Promise<void> {
     try {
       this.timeVolume = removeTimeFromDate(new Date());
-      
+
       this.blockNumber = BigInt(await this.getActualBlock());
       loggerServer.info("new fetching with actual block: ", this.blockNumber.toString());
 
