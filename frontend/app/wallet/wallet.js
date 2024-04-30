@@ -234,7 +234,7 @@ export default function Wallet() {
       <div>
         {showPopup && (
           <div className="popup">
-            <p>name: {data.eventName} <br />
+            <p>name: {data.eventname} <br />
               value: {data.value}</p>
           </div>
         )}
