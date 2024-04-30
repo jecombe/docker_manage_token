@@ -111,7 +111,7 @@ export class Contract extends Viem {
 
   async sendVolumeDaily(volume: number): Promise<void> {
 
-    loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", this.saveTime, this.timeVolume, this.isElementInArray(this.saveTime, this.timeVolume))
+    loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", volume)
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
       this.saveTime.push(this.timeVolume)
@@ -119,7 +119,7 @@ export class Contract extends Viem {
 
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
-      loggerServer.warn("is Exist");
+      loggerServer.warn("is Exist", volume);
 
       if (this.timeVolume) this.manager.updateDataVolumes(this.timeVolume, volume);
     }
