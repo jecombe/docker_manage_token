@@ -226,7 +226,7 @@ export class Contract extends Viem {
     try {
       if (!_.isEmpty(parsed)) {
         const checkExisting: ParsedLog[] = this.isExist(parsed);
-        this.sendVolumeDaily(Number(this.calculateVolume(parsed)));
+        this.sendVolumeDaily(Number(this.calculateVolume(checkExisting)));
 
         if (!_.isEmpty(checkExisting)) {
 
