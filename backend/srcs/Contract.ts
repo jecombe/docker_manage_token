@@ -137,6 +137,8 @@ export class Contract extends Viem {
 
           const socketIdTo = this.manager.users[el.to]?.socketId;
           const socketIdFrom = this.manager.users[el.from]?.socketId;
+
+          loggerServer.warn("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPp", socketIdFrom, socketIdTo)
           
 
           if (socketIdTo && isRealTime) this.manager.sendDataToClientWithAddress(socketIdTo, this.parsingWs(el));
