@@ -10,7 +10,7 @@ import { Manager } from "./Manager.js";
 import { Contract } from "./Contract.js";
 import { Log } from "viem";
 import { LogEntry, ResultBdd, ResultVolume } from "../utils/interfaces.js";
-import { Server as SocketIOServer, Socket } from "socket.io";
+import { Socket, Server as SocketIOServer } from "socket.io";
 import http from "http";
 
 dotenv.config();
@@ -36,38 +36,47 @@ export class Server extends DataBase {
       }
     });
   }
-
   startWebSocketServer(): void {
-    loggerServer.info("Start websocket")
-    this.io.on("connection", (socket: any) => {
-      loggerServer.trace("user connected",socket.handshake.query.address);
-      //this.sendWsToAllClients({ message: "Hello from server!" });
-      this.contract?.manager.addUsers(socket.id, socket.handshake.query.address)
-
-
+    loggerServer.info("Start websocket");
+    this.io.on("connection", (socket: Socket) => {
+      const address = socket.handshake.query.address as string | undefined;
+      if (address) {
+        loggerServer.trace("user connected", address);
+        this.contract?.manager.addUsers(socket.id, address);
+      } else {
+        loggerServer.error("No address provided in query parameters");
+        // Vous pouvez prendre une action par défaut ici, comme ignorer la connexion ou envoyer un message d'erreur
+      }
+  
       socket.on("disconnect", () => {
         console.log("Client disconnected");
+        if (address) {
+          this.contract?.manager.removeUser(address);
+        } else {
+          loggerServer.error("No address provided for removing user", address);
+        }
       });
     });
   }
+  
 
 
   // Fonction pour envoyer des données à un client spécifique avec une adresse Ethereum spécifique
-  sendDataToClientWithAddress(socketId: string, data: any) {
+  sendDataToClientWithAddress(socketId: string, data: ResultBdd) {
     this.io.to(socketId).emit("data", data);
   }
 
-  sendWsToAllClients(data: any) {
-    this.io.emit("allData", data)
+  sendWsToAllClients(data: ResultBdd) {
+    this.io.emit("allData", data);
   }
 
 
-  sendWsVolumeToAllClients(data: any) {
-    this.io.emit("volume", data)
+  sendWsVolumeToAllClients(data: ResultVolume) {
+    this.io.emit("volume", data);
   }
 
 
-  sendWsToClient(socketId: string, data: any) {
+  sendWsToClient(socketId: string, data: ResultBdd) {
     this.io.to(socketId).emit("myData", data);
   }
 
@@ -138,7 +147,6 @@ export class Server extends DataBase {
       }
     });
   }
-
 
 
   getAllLogsFromAddr(): void {
@@ -257,7 +265,7 @@ export class Server extends DataBase {
   startFetchingLogs(): void {
     this.contract?.startListener((logs: Log[]) => {
       loggerServer.trace("Receive logs: ", logs);
-      const finalParse = this.contract?.parseResult(this.parseLogListener(logs))
+      const finalParse = this.contract?.parseResult(this.parseLogListener(logs));
 
       if (finalParse) this.contract?.sendLogsWithCheck(finalParse, true);
     });

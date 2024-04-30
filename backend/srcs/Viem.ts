@@ -16,7 +16,7 @@ export class Viem {
   constructor() {
     this.wsUrl = 'wss://sepolia.infura.io/ws/v3/3576824e640441d38580334356ef5046';
 
-    this.cliPublic = this.connectPublicClient()//this.connectPublicClient();
+    this.cliPublic = this.connectPublicClient();//this.connectPublicClient();
     this.ws = this.connectPublicWs();
   }
 
@@ -28,11 +28,11 @@ export class Viem {
       transport: webSocket(this.wsUrl, {
         reconnect: {
           // maxAttempts:
-          delay: 2000,   // Delay between reconnection attempts (in ms)
+          delay: 2000, // Delay between reconnection attempts (in ms)
         },
-        retryCount: 3,    // Maximum number of retries for failed requests
-        retryDelay: 150,  // Base delay between retry attempts (in ms)
-        timeout: 10000,   // Timeout for async WebSocket requests (in ms)
+        retryCount: 3, // Maximum number of retries for failed requests
+        retryDelay: 150, // Base delay between retry attempts (in ms)
+        timeout: 10000, // Timeout for async WebSocket requests (in ms)
       }),
     });
   }
@@ -56,7 +56,6 @@ export class Viem {
       onLogs: callback,
     });
   }
-
 
 
   async getActualBlock(): Promise<bigint> {

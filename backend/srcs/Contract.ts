@@ -6,7 +6,7 @@ import { Viem } from "./Viem.js";
 import { Manager } from "./Manager.js";
 import _ from "lodash";
 import { calculateBlocksPerDay, compareDates, removeTimeFromDate, subtractOneDay, waiting } from "../utils/utils.js";
-import { LogEntry, LogOwner, ParsedLog } from "../utils/interfaces.js";
+import { LogEntry, LogOwner, ParsedLog, ResultBdd } from "../utils/interfaces.js";
 
 dotenv.config();
 
@@ -95,6 +95,7 @@ export class Contract extends Viem {
         parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
+
       else loggerServer.info("Uknow envent come here: ", currentLog);
 
       accumulator.push(parsedLog);
@@ -106,22 +107,22 @@ export class Contract extends Viem {
   async sendVolumeDaily(volume: number): Promise<void> {
     if (this.timeVolume && !_.includes(this.saveTime, this.timeVolume)) {
 
-      this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume })
+      this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` });
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
       loggerServer.warn("is Exist");
     }
   }
 
-  parsingWs(repWs: any) {
+  parsingWs(repWs: ParsedLog): ResultBdd {
     return {
       blocknumber: repWs.blockNumber,
       eventname: repWs.eventName,
       fromaddress: repWs.from,
       toaddress: repWs.to,
       transactionhash: repWs.transactionHash,
-      value: repWs.value
-    }
+      value: `${repWs.value}`
+    };
   }
 
 
@@ -134,8 +135,9 @@ export class Contract extends Viem {
         if (!_.includes(this.saveTx, el.transactionHash)) {
           await this.manager.insertDataLogs(el);
 
-          const socketIdTo = this.manager.users[el.to]
-          const socketIdFrom = this.manager.users[el.from]
+          const socketIdTo = this.manager.users[el.to]?.socketId;
+          const socketIdFrom = this.manager.users[el.from]?.socketId;
+          
 
           if (socketIdTo && isRealTime) this.manager.sendDataToClientWithAddress(socketIdTo, this.parsingWs(el));
           if (socketIdFrom && isRealTime) this.manager.sendDataToClientWithAddress(socketIdFrom, this.parsingWs(el));
@@ -143,7 +145,7 @@ export class Contract extends Viem {
           if (socketIdTo) this.manager.sendWsToClient(socketIdTo, this.parsingWs(el));
           if (socketIdFrom) this.manager.sendWsToClient(socketIdFrom, this.parsingWs(el));
 
-          this.manager.sendWsToAllClients(this.parsingWs(el))
+          this.manager.sendWsToAllClients(this.parsingWs(el));
 
           this.saveTx.push(el.transactionHash);
         }
@@ -282,7 +284,7 @@ export class Contract extends Viem {
 
       await this.sendLogsWithCheck(parsed, false);
 
-      if (this.saveBatch && this.timeVolume && !compareDates(this.saveBatch, this.timeVolume)) isFetchOtherDay = true
+      if (this.saveBatch && this.timeVolume && !compareDates(this.saveBatch, this.timeVolume)) isFetchOtherDay = true;
 
       if (!this.saveBatch) isFetchOtherDay = true;
 
@@ -362,7 +364,6 @@ export class Contract extends Viem {
     }
 
   };
-
 
 
   async startListeningEvents(): Promise<void> {
