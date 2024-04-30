@@ -114,6 +114,7 @@ export class Contract extends Viem {
     loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", this.saveTime, this.timeVolume, this.isElementInArray(this.saveTime, this.timeVolume))
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
+      this.saveTime.push(this.timeVolume)
       this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
 
       return this.manager.insertDataVolumes(this.timeVolume, volume);
