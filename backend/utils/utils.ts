@@ -52,9 +52,7 @@ export const compareDates = (date1: Date, date2: Date): boolean => {
   const diffTime = Math.abs(time1 - time2);
 
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  console.log(diffDays, date1, date2);
-  
+    
   if (diffDays > 0) {
     return false;
   }

@@ -21,8 +21,6 @@ export class Viem {
   }
 
   connectPublicWs(): PublicClient {
-    console.log(this.wsUrl);
-
     return createPublicClient({
       chain: sepolia as Chain,
       transport: webSocket(this.wsUrl, {

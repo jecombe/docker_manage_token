@@ -23,7 +23,7 @@ const server = http.createServer(app);
 export class Server extends DataBase {
 
   public contract: Contract | null;
-  private io: SocketIOServer; 
+  private io: SocketIOServer;
 
 
   constructor() {
@@ -45,11 +45,11 @@ export class Server extends DataBase {
         this.contract?.manager.addUsers(socket.id, address);
       } else {
         loggerServer.error("No address provided in query parameters");
-        // Vous pouvez prendre une action par défaut ici, comme ignorer la connexion ou envoyer un message d'erreur
       }
-  
+
       socket.on("disconnect", () => {
-        console.log("Client disconnected");
+        loggerServer.trace("Client disconnect", address);
+
         if (address) {
           this.contract?.manager.removeUser(address);
         } else {
@@ -58,10 +58,7 @@ export class Server extends DataBase {
       });
     });
   }
-  
 
-
-  // Fonction pour envoyer des données à un client spécifique avec une adresse Ethereum spécifique
   sendDataToClientWithAddress(socketId: string, data: ResultBdd) {
     this.io.to(socketId).emit("data", data);
   }

@@ -6,7 +6,7 @@ import { Viem } from "./Viem.js";
 import { Manager } from "./Manager.js";
 import _ from "lodash";
 import { calculateBlocksPerDay, compareDates, removeTimeFromDate, subtractOneDay, waiting } from "../utils/utils.js";
-import { LogEntry, LogOwner, ParsedLog, ResultBdd } from "../utils/interfaces.js";
+import { LogEntry, LogOwner, ParsedLog } from "../utils/interfaces.js";
 
 dotenv.config();
 
@@ -21,7 +21,7 @@ export class Contract extends Viem {
   timeVolume: Date | null;
   saveTime: Date[];
   isContractPrev: bigint;
-  saveBatch: Date | null;
+  saveBatch: Date | null
   contractAddr: string;
 
 
@@ -29,16 +29,16 @@ export class Contract extends Viem {
     super();
     this.manager = manager;
     this.timeVolume = null;
-    this.saveBatch = null;
-
     this.saveTx = [];
     this.saveTime = [];
+    this.saveBatch = null;
     this.index = 0;
     this.isFetching = true;
     this.blockNumber = BigInt(0);
     this.isContractPrev = BigInt(0);
     this.timePerRequest = this.getRateLimits();
     this.contractAddr = `${process.env.CONTRACT}`;
+
   }
   async startAfterReset() {
     try {
@@ -55,8 +55,8 @@ export class Contract extends Viem {
     this.isFetching = false;
     this.index = 0;
     this.saveTime = [];
-    this.saveTx = [];
     this.saveBatch = null;
+    this.saveTx = [];
 
   }
 
@@ -88,14 +88,13 @@ export class Contract extends Viem {
         parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
-
+      
       else if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
         parsedLog.from = currentLog.args.owner;
-        parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || '';
+        parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || ''; // Défaut à une chaîne vide si c'est undefined
         parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
-
       else loggerServer.info("Uknow envent come here: ", currentLog);
 
       accumulator.push(parsedLog);
@@ -103,26 +102,26 @@ export class Contract extends Viem {
     }, []);
   }
 
-
   async sendVolumeDaily(volume: number): Promise<void> {
     if (this.timeVolume && !_.includes(this.saveTime, this.timeVolume)) {
+      //this.manager.sendWsVolumeToAllClients([this.timeVolume, volume])
 
-      this.manager.sendWsVolumeToAllClients({ timestamp: removeTimeFromDate(this.timeVolume), volume: `${volume}` });
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
       loggerServer.warn("is Exist");
+      //this.manager.getVolumeByDate();
     }
   }
 
-  parsingWs(repWs: ParsedLog): ResultBdd {
+  parsingWs(repWs: any) {
     return {
       blocknumber: repWs.blockNumber,
       eventname: repWs.eventName,
       fromaddress: repWs.from,
       toaddress: repWs.to,
       transactionhash: repWs.transactionHash,
-      value: `${repWs.value}`
-    };
+      value: repWs.value
+    }
   }
 
 
@@ -157,7 +156,6 @@ export class Contract extends Viem {
       throw error;
     }
   }
-
 
   isExist(array: ParsedLog[]): ParsedLog[] {
 
@@ -274,8 +272,8 @@ export class Contract extends Viem {
 
   async getEventsLogsFrom(): Promise<boolean> {
     try {
+      let isOk = false;
 
-      let isFetchOtherDay = false;
       this.isContractPrev = BigInt(0);
 
       if (!this.isFetching) return true;
@@ -286,13 +284,14 @@ export class Contract extends Viem {
 
       await this.sendLogsWithCheck(parsed, false);
 
-      if (this.saveBatch && this.timeVolume && !compareDates(this.saveBatch, this.timeVolume)) isFetchOtherDay = true;
+      if (this.saveBatch && this.timeVolume && !compareDates(this.saveBatch, this.timeVolume)) isOk = true
 
-      if (!this.saveBatch) isFetchOtherDay = true;
+      if (!this.saveBatch) isOk = true;
 
-      if (isFetchOtherDay) this.index++;
+      if (isOk) this.index++;
 
-      if (this.timeVolume) this.timeVolume = subtractOneDay(this.timeVolume);
+
+      if (this.timeVolume && isOk) this.timeVolume = subtractOneDay(this.timeVolume);
 
       if (this.isContractPrev !== BigInt(0)) return true;
 
@@ -335,9 +334,12 @@ export class Contract extends Viem {
           loggerServer.warn("process fetching is stop -> smart contract is born");
           this.index = 0;
           loggerServer.info("waiting for a new fetching...");
+          this.saveBatch = removeTimeFromDate(new Date());
+
           await waiting(this.manager.config.waiting);
           await this.newFetching();
         }
+        //this.isFetchAll = false;
       }
     } catch (error) {
       loggerServer.fatal("getLogsContract: ", error);
@@ -356,6 +358,7 @@ export class Contract extends Viem {
 
   async processLogsBatch(): Promise<boolean> {
     const batchStartTime: number = Date.now();
+
     try {
       const isStop = await this.getEventsLogsFrom();
       await this.waitingRate(batchStartTime, this.timePerRequest);
@@ -364,8 +367,8 @@ export class Contract extends Viem {
       loggerServer.error("processLogsBatch: ", error);
       throw error;
     }
-
   };
+
 
 
   async startListeningEvents(): Promise<void> {
