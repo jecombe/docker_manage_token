@@ -232,15 +232,12 @@ export default function Wallet() {
   return (
     <>
       <div>
-        {/* Affichage conditionnel du pop-up */}
         {showPopup && (
           <div className="popup">
-            {/* Contenu du pop-up */}
             <p>name: {data.eventName} <br />
               value: {data.value}</p>
           </div>
         )}
-        {/* Le reste de votre composant */}
       </div>
       <div
         style={{ display: "flex", flexDirection: "column", alignItems: "center" }}

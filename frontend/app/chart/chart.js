@@ -30,8 +30,6 @@ const VolumeChart = ({ data }) => {
     const volumes = data.map(item => Number(item.volume)).reverse();
     setLabels(labels)
     setDataAsset(volumes)
-
-    console.log(labels, volumes);
   }, [data]);
 
   return (

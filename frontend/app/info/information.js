@@ -124,9 +124,6 @@ export default function Information({ userAddress, isConnect, socket }) {
     setUserLogs(allLogsFromAddr);
     setAllowances(allowancesFromAddr)
 
-    console.log(volumesDaily);
-
-
     setVolumes(volumesDaily.map(item => {
       const dateWithoutTime = new Date(item.timestamp).toISOString().split('T')[0];
       return { ...item, timestamp: dateWithoutTime };
@@ -135,18 +132,12 @@ export default function Information({ userAddress, isConnect, socket }) {
   }
 
   const getInfoDatabase = async () => {
-    // const intervalId = setInterval(async () => {
     try {
-      console.log("interval fetching");
       const repUserTx = await getDataFromDb()
-      console.log("GET INFO DATABASE", repUserTx);
       parsingDataApi(repUserTx);
     } catch (error) {
       console.error(error);
     }
-    // }, 60000);
-    //
-    // setIntervalId(intervalId);
   }
 
 
@@ -154,7 +145,6 @@ export default function Information({ userAddress, isConnect, socket }) {
     try {
       console.log("waiting data...");
       const repUserTx = await getDataFromDb()
-      console.log(repUserTx);
       parsingDataApi(repUserTx);
       getInfoDatabase()
 
