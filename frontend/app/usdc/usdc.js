@@ -47,11 +47,12 @@ export default function Usdc({
         userAddr
       );
       await waitingTransaction(hash);
+      setMintLoading(false);
+
       await getInfos(userAddr);
 
       console.log("finish");
       setMintAmount(0);
-      setMintLoading(false);
     } catch (error) {
       console.error(error);
       setMintAmount(0);
@@ -70,11 +71,11 @@ export default function Usdc({
         userAddr
       );
       await waitingTransaction(hash);
+      setBurnLoading(false);
       await getInfos(userAddr);
 
       console.log("finish");
       setBurnAmount(0);
-      setBurnLoading(false);
     } catch (error) {
       console.error(error);
       setBurnLoading(false);
@@ -93,12 +94,13 @@ export default function Usdc({
         userAddr
       );
       await waitingTransaction(hash);
+      setSendLoading(false);
+
       await getInfos(userAddr);
 
       console.log("finish");
       setSendAmount(0);
       setRecipient("");
-      setSendLoading(false);
     } catch (error) {
       console.error(error);
       setSendAmount(0);
@@ -159,12 +161,12 @@ export default function Usdc({
         userAddr
       );
       await waitingTransaction(hash);
+      setTransferFromLoading(false);
       await getInfos(userAddr);
 
       console.log("finish");
       setTransferFromAmount(0);
       setTransferFromRecipient("");
-      setTransferFromLoading(false);
     } catch (error) {
       console.error(error);
       setTransferFromAmount(0);
