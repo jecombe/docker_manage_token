@@ -336,6 +336,8 @@ export class Contract extends Viem {
       await this.newFetching();
 
       while (this.isFetching) {
+        loggerServer.warn("+++++++++++++++++++---------------------------------------", this.saveTime);
+
         const isStop = await this.processLogsBatch();
         await waiting(this.manager.config.waiting);
         if (isStop) {
