@@ -102,11 +102,16 @@ export class Contract extends Viem {
     }, []);
   }
 
+   isElementInArray(array: any, element: any) {
+    const elementAsString = String(element);
+  
+    return array.map(String).includes(elementAsString);
+  }
+
   async sendVolumeDaily(volume: number): Promise<void> {
 
-    console.log("HOHOHOHOHOH", typeof this.saveTime[0], typeof this.timeVolume);
 
-    if (this.timeVolume && !_.includes(this.saveTime, this.timeVolume)) {
+    if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
       this.manager.sendWsVolumeToAllClients({timestamp: this.timeVolume, volume: `${volume}`})
 
       return this.manager.insertDataVolumes(this.timeVolume, volume);
