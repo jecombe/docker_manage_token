@@ -56,8 +56,8 @@ export const compareDates = (date1: Date, date2: Date): boolean => {
   console.log(diffDays, date1, date2);
   
   if (diffDays > 0) {
-      return false;
+    return false;
   }
 
   return true;
-}
+};

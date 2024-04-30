@@ -22,15 +22,6 @@ export interface LogOwner {
     blockNumber: bigint;
 }
 
-export interface Query {
-    text: string;
-    values?: (string | number | bigint | Date)[];
-}
-
-/*export interface QueryVolume {
-    text: string;
-    values?: (string | number | bigint)[];
-}*/
 
 export interface ParsedLog {
     eventName: string;
@@ -61,3 +52,8 @@ export interface Config {
     waiting: number;
     timeBlock: number;
 }
+
+export interface User {
+    socketId: string;
+    address: string;
+  }
