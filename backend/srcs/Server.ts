@@ -58,7 +58,17 @@ export class Server extends DataBase {
   }
 
   sendWsToAllClients(data: any) {
-    this.io.emit("data", data)
+    this.io.emit("allData", data)
+  }
+
+
+  sendWsVolumeToAllClients(data: any) {
+    this.io.emit("volume", data)
+  }
+
+
+  sendWsToClient(socketId: string, data: any) {
+    this.io.to(socketId).emit("myData", data);
   }
 
   setManager(manager: Manager): void {
@@ -249,7 +259,7 @@ export class Server extends DataBase {
       loggerServer.trace("Receive logs: ", logs);
       const finalParse = this.contract?.parseResult(this.parseLogListener(logs))
 
-      if (finalParse) this.contract?.sendLogsWithCheck(finalParse);
+      if (finalParse) this.contract?.sendLogsWithCheck(finalParse, true);
     });
   }
 
@@ -264,7 +274,7 @@ export class Server extends DataBase {
       this.saveTime(allVolumes);
       this.startWebSocketServer();
       this.startFetchingLogs();
-  //    this.contract?.startListeningEvents();
+      this.contract?.startListeningEvents();
     } catch (error) {
       loggerServer.error("start", error);
       throw error;

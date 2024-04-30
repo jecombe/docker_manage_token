@@ -5,7 +5,7 @@ import { CircleLoader } from "react-spinners";
 import { deleteBdd, fetchAllLogs, fetchAllLogsFromAddr, fetchAllowancesFromAddr, fetchTranferFromAddr, fetchVolumesDaily } from "@/utils/server";
 import VolumeChart from "../chart/chart";
 
-export default function Information({ userAddress, isConnect }) {
+export default function Information({ userAddress, isConnect, socket }) {
   const [loadingAll, setLoadingAll] = useState(true)
   const [loadingUser, setLoadingUser] = useState(true)
   const [loadingAllowance, setLoadingAllowance] = useState(true)
@@ -43,13 +43,55 @@ export default function Information({ userAddress, isConnect }) {
     await waitingRate(batchStartTime, objectData.timePerRequest);
   };*/
 
+  const dispatchUser = (logsUser) => {
+
+    if (logsUser.eventname === "Approval") {
+      setAllowances(prevLogs => [...prevLogs, logsUser]);
+
+    }
+    setUserLogs(prevLogs => [...prevLogs, logsUser]);
+  }
+
+  const dispatchUsers = (logsUsers) => {
+    setAllLogs(prevLogs => [...prevLogs, logsUsers]);
+  }
+
+  const dispatchVolume = (logsVolume) => {
+    setVolumes(prevLogs => [...prevLogs, logsVolume]);
+  }
+
+
   const setLoading = (isLoading) => {
     setLoadingAll(isLoading);
     setLoadingUser(isLoading);
     setLoadingAllowance(isLoading);
     setLoadingChart(isLoading)
   }
+  useEffect(() => {
+    if (socket) {
+      socket.on("allData", (data) => {
+        console.log("Received allData:", data);
+        dispatchUsers(data)
+      });
 
+      socket.on("myData", (data) => {
+        console.log("Received myData:", data);
+        dispatchUser(data)
+      });
+
+      socket.on("volume", (data) => {
+        console.log("Received Volume:", data);
+        dispatchVolume(data)
+      });
+
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("allData");
+      }
+    };
+  }, [socket]);
 
 
   const getDataFromDb = async () => {
@@ -86,25 +128,25 @@ export default function Information({ userAddress, isConnect }) {
 
 
     setVolumes(volumesDaily.map(item => {
-        const dateWithoutTime = new Date(item.timestamp).toISOString().split('T')[0];
-        return { ...item, timestamp: dateWithoutTime };
+      const dateWithoutTime = new Date(item.timestamp).toISOString().split('T')[0];
+      return { ...item, timestamp: dateWithoutTime };
     }))
 
   }
 
-  const startIntervalFetching = () => {
-    const intervalId = setInterval(async () => {
-      try {
-        console.log("interval fetching");
-        const repUserTx = await getDataFromDb()
-        console.log(repUserTx);
-        parsingDataApi(repUserTx);
-      } catch (error) {
-        console.error(error);
-      }
-    }, 60000);
-//
-    setIntervalId(intervalId);
+  const getInfoDatabase = async () => {
+    // const intervalId = setInterval(async () => {
+    try {
+      console.log("interval fetching");
+      const repUserTx = await getDataFromDb()
+      console.log("GET INFO DATABASE", repUserTx);
+      parsingDataApi(repUserTx);
+    } catch (error) {
+      console.error(error);
+    }
+    // }, 60000);
+    //
+    // setIntervalId(intervalId);
   }
 
 
@@ -114,7 +156,7 @@ export default function Information({ userAddress, isConnect }) {
       const repUserTx = await getDataFromDb()
       console.log(repUserTx);
       parsingDataApi(repUserTx);
-      startIntervalFetching()
+      getInfoDatabase()
 
     } catch (error) {
       console.error(error);
@@ -144,7 +186,7 @@ export default function Information({ userAddress, isConnect }) {
     setStop(false);
     setIsStopped(true);
     setLoading(true);
-    startIntervalFetching();
+    getInfoDatabase();
     console.log("start");
   };
 
@@ -161,7 +203,7 @@ export default function Information({ userAddress, isConnect }) {
       console.log(error);
     }
   }
- 
+
   const resetRequest = () => {
     setStop(true);
     setIsStopped(false);
@@ -307,17 +349,17 @@ export default function Information({ userAddress, isConnect }) {
       </div>
       <hr style={{ width: "100%", borderTop: "3px solid black" }} />
 
-    <div className="chart-container">
-    <div style={{ marginLeft: '20px' }}>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <h2 style={{ marginRight: "10px" }}>Daily Volumes BUSD</h2>
-        {loadingChart && (
-                <CircleLoader color={"#000000"} loading={loadingUser} size={20} />
-              )}
-        {!_.isEmpty(volumes) ?  <VolumeChart data={volumes}/> : null}
-       
-      </div>
-      </div>
+      <div className="chart-container">
+        <div style={{ marginLeft: '20px' }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <h2 style={{ marginRight: "10px" }}>Daily Volumes BUSD</h2>
+            {loadingChart && (
+              <CircleLoader color={"#000000"} loading={loadingUser} size={20} />
+            )}
+            {!_.isEmpty(volumes) ? <VolumeChart data={volumes} /> : null}
+
+          </div>
+        </div>
       </div>
     </div>
   );

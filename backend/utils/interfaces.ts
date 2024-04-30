@@ -1,6 +1,7 @@
 
 export interface LogEntry {
     args: {
+        spender?: string ;
         from?: string;
         to?: string;
         value?: bigint;

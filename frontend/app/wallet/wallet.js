@@ -28,6 +28,7 @@ export default function Wallet() {
   const [currentNetwork, setCurrentNetwork] = useState(null);
   const [userResponse, setUserResponse] = useState(true);
   const [data, setData] = useState({})
+  const [socket, setSocket] = useState(null)
 
 
   const getInfos = async (address) => {
@@ -59,6 +60,8 @@ export default function Wallet() {
     const socket = io('wss://jeremy.training.real-estate-executive.com', {
       query: { address }
     });
+    setSocket(socket)
+
     socket.on("connect", () => {
       console.log("Connected to WebSocket server");
     });
@@ -228,85 +231,85 @@ export default function Wallet() {
 
   return (
     <>
-    <div>
-   {/* Affichage conditionnel du pop-up */}
-   {showPopup && (
-     <div className="popup">
-     {/* Contenu du pop-up */}
-     <p>name: {data.eventName}
-       value: {data.value}</p>
-   </div>
-   )}
-   {/* Le reste de votre composant */}
- </div>
-    <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-    >
-      <button className="metamask-button" onClick={handleClick}>
-        {isLoading ? (
-          <CircleLoader color={"#000000"} loading={isLoading} />
-        ) : (
-          <>
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg"
-              alt="MetaMask Fox"
-            />
-            <span>{isConnect ? "Disconnect Wallet" : "Connect Wallet"}</span>
-          </>
+      <div>
+        {/* Affichage conditionnel du pop-up */}
+        {showPopup && (
+          <div className="popup">
+            {/* Contenu du pop-up */}
+            <p>name: {data.eventName} <br />
+              value: {data.value}</p>
+          </div>
         )}
-      </button>
-      <h2>{address}</h2>
-      <button className="zama-devnet-button" onClick={addNetwork}>
-        Zama devnet
-      </button>
-
-      {isConnect ? (
-        <button
-          className="refresh-balances-button"
-          onClick={updateBalance}
-          disabled={isLoading}
-        >
-          Refresh Balances
+        {/* Le reste de votre composant */}
+      </div>
+      <div
+        style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      >
+        <button className="metamask-button" onClick={handleClick}>
+          {isLoading ? (
+            <CircleLoader color={"#000000"} loading={isLoading} />
+          ) : (
+            <>
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg"
+                alt="MetaMask Fox"
+              />
+              <span>{isConnect ? "Disconnect Wallet" : "Connect Wallet"}</span>
+            </>
+          )}
         </button>
-      ) : (
-        ""
-      )}
+        <h2>{address}</h2>
+        <button className="zama-devnet-button" onClick={addNetwork}>
+          Zama devnet
+        </button>
 
-      {!userResponse ? (
-        <div>
-          <h1>Wrong network</h1>
-          <h2>Connect to Sepolia testnet to use this dapp</h2>
-        </div>
-      ) : null}
+        {isConnect ? (
+          <button
+            className="refresh-balances-button"
+            onClick={updateBalance}
+            disabled={isLoading}
+          >
+            Refresh Balances
+          </button>
+        ) : (
+          ""
+        )}
 
-      <hr style={{ width: "100%", borderTop: "3px solid black" }} />
+        {!userResponse ? (
+          <div>
+            <h1>Wrong network</h1>
+            <h2>Connect to Sepolia testnet to use this dapp</h2>
+          </div>
+        ) : null}
 
-      {isConnect && !isLoading ? (
-        <>
-          <Owner owner={owner} address={address} />
-          <hr style={{ width: "100%", borderTop: "3px solid black" }} />
+        <hr style={{ width: "100%", borderTop: "3px solid black" }} />
 
-          <Matic
-            address={address}
-            balance={Math.round(Number(balance))}
-            updateBalance={updateBalance}
-          />
-          <hr style={{ width: "100%", borderTop: "3px solid black" }} />
-          <Usdc
-            totalSupply={Math.round(totalSupply)}
-            owner={owner}
-            balanceBusd={balanceBusd}
-            userAddr={address}
-            getInfos={getInfos}
-          />
-          <hr style={{ width: "100%", borderTop: "3px solid black" }} />
+        {isConnect && !isLoading ? (
+          <>
+            <Owner owner={owner} address={address} />
+            <hr style={{ width: "100%", borderTop: "3px solid black" }} />
 
-          <Information userAddress={address} isConnect={isConnect} />
-        </>
-      ) : (
-        <h1> Need to connect to your metamask </h1>
-      )}
-    </div>
+            <Matic
+              address={address}
+              balance={Math.round(Number(balance))}
+              updateBalance={updateBalance}
+            />
+            <hr style={{ width: "100%", borderTop: "3px solid black" }} />
+            <Usdc
+              totalSupply={Math.round(totalSupply)}
+              owner={owner}
+              balanceBusd={balanceBusd}
+              userAddr={address}
+              getInfos={getInfos}
+            />
+            <hr style={{ width: "100%", borderTop: "3px solid black" }} />
+
+            <Information userAddress={address} isConnect={isConnect} socket={socket}/>
+          </>
+        ) : (
+          <h1> Need to connect to your metamask </h1>
+        )}
+      </div>
     </>
   );
 }

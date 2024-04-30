@@ -81,17 +81,17 @@ export class Contract extends Viem {
     return logs.reduce((accumulator: ParsedLog[], currentLog: LogEntry) => {
 
       const parsedLog: ParsedLog = this.initParsingLog(currentLog);
-
+      
       if (currentLog.eventName === "Transfer" && currentLog.args.from && currentLog.args.to) {
         parsedLog.from = currentLog.args.from;
         parsedLog.to = currentLog.args.to;
         parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
-
-      else if (currentLog.eventName === "Approval" && currentLog.args.owner && currentLog.args.sender) {
+      
+      else if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
         parsedLog.from = currentLog.args.owner;
-        parsedLog.to = currentLog.args.sender;
+        parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || '';
         parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
@@ -102,31 +102,49 @@ export class Contract extends Viem {
     }, []);
   }
 
+
   async sendVolumeDaily(volume: number): Promise<void> {
     if (this.timeVolume && !_.includes(this.saveTime, this.timeVolume)) {
 
+      this.manager.sendWsVolumeToAllClients([this.timeVolume, volume])
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
       loggerServer.warn("is Exist");
-      //this.manager.getVolumeByDate();
     }
   }
 
-  async sendData(parsed: ParsedLog[], volume: number): Promise<void> {
+  parsingWs(repWs: any) {
+    return {
+      blocknumber: repWs.blockNumber,
+      eventname: repWs.eventName,
+      fromaddress: repWs.from,
+      toaddress: repWs.to,
+      transactionhash: repWs.transactionHash,
+      value: repWs.value
+    }
+  }
+
+
+  async sendData(parsed: ParsedLog[], volume: number, isRealTime: boolean): Promise<void> {
     try {
 
       this.sendVolumeDaily(volume);
 
       for (const el of parsed) {
         if (!_.includes(this.saveTx, el.transactionHash)) {
+          await this.manager.insertDataLogs(el);
 
           const socketIdTo = this.manager.users[el.to]
           const socketIdFrom = this.manager.users[el.from]
-          
-          if (socketIdTo) this.manager.sendDataToClientWithAddress(socketIdTo, el);
-          if (socketIdFrom) this.manager.sendDataToClientWithAddress(socketIdFrom, el);
 
-          await this.manager.insertDataLogs(el);
+          if (socketIdTo && isRealTime) this.manager.sendDataToClientWithAddress(socketIdTo, this.parsingWs(el));
+          if (socketIdFrom && isRealTime) this.manager.sendDataToClientWithAddress(socketIdFrom, this.parsingWs(el));
+
+          if (socketIdTo) this.manager.sendWsToClient(socketIdTo, this.parsingWs(el));
+          if (socketIdFrom) this.manager.sendWsToClient(socketIdFrom, this.parsingWs(el));
+
+          this.manager.sendWsToAllClients(this.parsingWs(el))
+
           this.saveTx.push(el.transactionHash);
         }
       }
@@ -135,6 +153,7 @@ export class Contract extends Viem {
       throw error;
     }
   }
+
 
   isExist(array: ParsedLog[]): ParsedLog[] {
 
@@ -194,7 +213,7 @@ export class Contract extends Viem {
     });
   }
 
-  async sendLogsWithCheck(parsed: ParsedLog[]): Promise<void> {
+  async sendLogsWithCheck(parsed: ParsedLog[], isRealTime: boolean): Promise<void> {
     try {
       if (!_.isEmpty(parsed)) {
         const checkExisting: ParsedLog[] = this.isExist(parsed);
@@ -202,7 +221,7 @@ export class Contract extends Viem {
 
           loggerServer.trace("Adding new thing: ", checkExisting, parsed, this.saveTx);
 
-          await this.sendData(checkExisting, Number(this.calculateVolume(parsed)));
+          await this.sendData(checkExisting, Number(this.calculateVolume(parsed)), isRealTime);
         } else {
           loggerServer.error("Log already existe", parsed);
         }
@@ -261,7 +280,7 @@ export class Contract extends Viem {
 
       const parsed = await this.manageProcessRequest();
 
-      await this.sendLogsWithCheck(parsed);
+      await this.sendLogsWithCheck(parsed, false);
 
       if (this.saveBatch && this.timeVolume && !compareDates(this.saveBatch, this.timeVolume)) isFetchOtherDay = true
 
