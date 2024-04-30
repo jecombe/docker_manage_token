@@ -104,7 +104,7 @@ export class Contract extends Viem {
 
   async sendVolumeDaily(volume: number): Promise<void> {
 
-    loggerServer.warn("::::::::::::::::::::::::::::::::::::::::..", this.saveTime, this.timeVolume)
+    console.log("HOHOHOHOHOH", this.saveTime, this.timeVolume);
 
     if (this.timeVolume && !_.includes(this.saveTime, this.timeVolume)) {
       this.manager.sendWsVolumeToAllClients({timestamp: this.timeVolume, volume: `${volume}`})
