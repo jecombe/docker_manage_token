@@ -103,6 +103,9 @@ export class Contract extends Viem {
   }
 
   async sendVolumeDaily(volume: number): Promise<void> {
+
+    loggerServer.warn("::::::::::::::::::::::::::::::::::::::::..", this.saveTime, this.timeVolume)
+
     if (this.timeVolume && !_.includes(this.saveTime, this.timeVolume)) {
       this.manager.sendWsVolumeToAllClients({timestamp: this.timeVolume, volume: `${volume}`})
 
@@ -136,8 +139,6 @@ export class Contract extends Viem {
 
           const socketIdTo = this.manager.users[el.to]?.socketId;
           const socketIdFrom = this.manager.users[el.from]?.socketId;
-
-          loggerServer.warn("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPp", socketIdFrom, socketIdTo)
           
 
           if (socketIdTo && isRealTime) this.manager.sendDataToClientWithAddress(socketIdTo, this.parsingWs(el));
@@ -266,8 +267,6 @@ export class Contract extends Viem {
       loggerServer.fatal("manageProcessRequest", error);
       throw error;
     }
-
-
   }
 
   async getEventsLogsFrom(): Promise<boolean> {
