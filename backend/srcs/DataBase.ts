@@ -200,6 +200,22 @@ export class DataBase {
     }
   }
 
+  async updateDataVolumes(timestamp: Date, volume: number): Promise<void> {
+    const query: Query = {
+      text: 'UPDATE contract_volumes SET volume = $1 WHERE timestamp = $2',
+      values: [volume, timestamp],
+    };
+    try {
+      loggerServer.trace('Data volumes update waiting...');
+      await this.pool.query(query);
+      loggerServer.info('Data volumes updated successfully');
+    } catch (error) {
+      loggerServer.error('Error updating data volumes:', error);
+      throw error;
+    }
+  }
+  
+
   async getAllVolumes(): Promise<ResultVolume[]> {
     const query: Query = {
       text: "SELECT * FROM contract_volumes"

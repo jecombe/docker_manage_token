@@ -117,7 +117,8 @@ export class Contract extends Viem {
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
       loggerServer.warn("is Exist");
-      //this.manager.getVolumeByDate();
+
+     if (this.timeVolume) this.manager.updateDataVolumes(this.timeVolume, volume);
     }
   }
 
