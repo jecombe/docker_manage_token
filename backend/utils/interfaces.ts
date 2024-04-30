@@ -13,6 +13,10 @@ export interface LogEntry {
     transactionHash: string;
 }
 
+export interface Query {
+    text: string;
+    values?: (string | number | bigint | Date)[];
+}
 
 export interface LogOwner {
     args: {
