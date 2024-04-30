@@ -52,11 +52,21 @@ export class Contract extends Viem {
 
   async resetFetching() {
 
-    this.isFetching = false;
+   /* this.isFetching = false;
     this.index = 0;
     this.saveTime = [];
     this.saveBatch = null;
+    this.saveTx = [];*/
+
+    this.timeVolume = null;
     this.saveTx = [];
+    this.saveTime = [];
+    this.saveBatch = null;
+    this.index = 0;
+    this.isFetching = false;
+    this.blockNumber = BigInt(0);
+    this.isContractPrev = BigInt(0);
+
 
   }
 
