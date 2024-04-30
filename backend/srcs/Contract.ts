@@ -89,7 +89,7 @@ export class Contract extends Viem {
         parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
-      
+
       else if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
         parsedLog.from = currentLog.args.owner;
         parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || ''; // Défaut à une chaîne vide si c'est undefined
@@ -103,9 +103,9 @@ export class Contract extends Viem {
     }, []);
   }
 
-   isElementInArray(array: any, element: any) {
+  isElementInArray(array: any, element: any) {
     const elementAsString = String(element);
-  
+
     return array.map(String).includes(elementAsString);
   }
 
@@ -114,13 +114,13 @@ export class Contract extends Viem {
     loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", this.saveTime, this.timeVolume, this.isElementInArray(this.saveTime, this.timeVolume))
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
-      this.manager.sendWsVolumeToAllClients({timestamp: this.timeVolume, volume: `${volume}`})
+      this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
 
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
       loggerServer.warn("is Exist");
 
-     if (this.timeVolume) this.manager.updateDataVolumes(this.timeVolume, volume);
+      if (this.timeVolume) this.manager.updateDataVolumes(this.timeVolume, volume);
     }
   }
 
@@ -146,7 +146,7 @@ export class Contract extends Viem {
 
           const socketIdTo = this.manager.users[el.to]?.socketId;
           const socketIdFrom = this.manager.users[el.from]?.socketId;
-          
+
 
           if (socketIdTo && isRealTime) this.manager.sendDataToClientWithAddress(socketIdTo, this.parsingWs(el));
           if (socketIdFrom && isRealTime) this.manager.sendDataToClientWithAddress(socketIdFrom, this.parsingWs(el));
@@ -233,7 +233,7 @@ export class Contract extends Viem {
 
           loggerServer.trace("Adding new thing: ", checkExisting, parsed, this.saveTx);
 
-          await this.sendData(checkExisting,  isRealTime);
+          await this.sendData(checkExisting, isRealTime);
         } else {
           loggerServer.error("Log already existe", parsed);
         }
@@ -339,12 +339,12 @@ export class Contract extends Viem {
         const isStop = await this.processLogsBatch();
         await waiting(this.manager.config.waiting);
         if (isStop) {
-          loggerServer.warn("process fetching is stop -> smart contract is born");
+          loggerServer.warn("process fetching is stop -> smart contract is born", this.saveTime);
           this.index = 0;
           loggerServer.info("waiting for a new fetching...");
           this.saveBatch = removeTimeFromDate(new Date());
 
-          await waiting(this.manager.config.waiting);
+         // await waiting(this.manager.config.waiting);
           await this.newFetching();
         }
         //this.isFetchAll = false;
