@@ -115,15 +115,19 @@ export class Contract extends Viem {
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
       this.saveTime.push(this.timeVolume)
-      this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
+      const ts = removeTimeFromDate(this.timeVolume)
+    
+      this.manager.sendWsVolumeToAllClients({ timestamp: ts.toISOString().split('T')[0], volume: `${volume}` })
 
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
       loggerServer.warn("is Exist", volume);
 
       if (this.timeVolume && volume) {
+        const ts = removeTimeFromDate(this.timeVolume)
+
         this.manager.updateDataVolumes(this.timeVolume, volume);
-        this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
+        this.manager.sendWsVolumeToAllClients({ timestamp: ts.toISOString().split('T')[0], volume: `${volume}` })
 
       }
     }

@@ -47,7 +47,7 @@ export interface ResultBdd {
 
 
 export interface ResultVolume {
-    timestamp: Date;
+    timestamp: string;
     volume: string;
 }
 
