@@ -111,7 +111,7 @@ export class Contract extends Viem {
 
   async sendVolumeDaily(volume: number): Promise<void> {
 
-    loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", volume)
+    loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", this.timeVolume, removeTimeFromDate(this.timeVolume || new Date()))
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
       this.saveTime.push(this.timeVolume)
