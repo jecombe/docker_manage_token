@@ -324,14 +324,12 @@ export class Contract extends Viem {
   async newFetching(): Promise<void> {
     try {
       this.timeVolume = removeTimeFromDate(new Date());
-      this.timeVolume.toISOString().split('T')[0]
       this.blockNumber = BigInt(await this.getActualBlock());
       loggerServer.info("new fetching with actual block: ", this.blockNumber.toString());
 
     } catch (error) {
       loggerServer.fatal("newFetching: ", error);
       this.timeVolume = removeTimeFromDate(new Date());
-      this.timeVolume.toISOString().split('T')[0]
       this.blockNumber = BigInt(0);
       throw error;
     }
@@ -350,7 +348,7 @@ export class Contract extends Viem {
           loggerServer.warn("process fetching is stop -> smart contract is born", this.saveTime);
           this.index = 0;
           loggerServer.info("waiting for a new fetching...");
-          this.saveBatch = removeTimeFromDate(new Date());
+          this.saveBatch = removeTimeFromDate(new Date())
           this.saveBatch.toISOString().split('T')[0]
 
 
