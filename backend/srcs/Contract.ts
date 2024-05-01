@@ -115,7 +115,7 @@ export class Contract extends Viem {
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
       this.saveTime.push(this.timeVolume)
-      this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
+      this.manager.sendWsVolumeToAllClients({ timestamp: removeTimeFromDate(this.timeVolume), volume: `${volume}` })
 
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
