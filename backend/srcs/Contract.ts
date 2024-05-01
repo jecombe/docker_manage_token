@@ -121,7 +121,11 @@ export class Contract extends Viem {
     } else {
       loggerServer.warn("is Exist", volume);
 
-      if (this.timeVolume && volume) this.manager.updateDataVolumes(this.timeVolume, volume);
+      if (this.timeVolume && volume) {
+        this.manager.updateDataVolumes(this.timeVolume, volume);
+       this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
+
+      }
     }
   }
 
