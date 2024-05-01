@@ -185,7 +185,7 @@ export class DataBase {
     }
   }
 
-  async insertDataVolumes(timestamp: Date, volume: number): Promise<void> {
+  async insertDataVolumes(timestamp: string, volume: number): Promise<void> {
     const query: Query = {
       text: 'INSERT INTO contract_volumes (timestamp, volume) VALUES ($1, $2)',
       values: [timestamp, volume],

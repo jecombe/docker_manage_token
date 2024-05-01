@@ -121,7 +121,7 @@ export class Contract extends Viem {
 
       this.manager.sendWsVolumeToAllClients({ timestamp, volume: `${volume}` })
 
-      return this.manager.insertDataVolumes(this.timeVolume, volume);
+      return this.manager.insertDataVolumes(timestamp, volume);
     } else {
       loggerServer.warn("is Exist", volume);
 
