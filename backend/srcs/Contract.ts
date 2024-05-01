@@ -103,10 +103,11 @@ export class Contract extends Viem {
     }, []);
   }
 
-  isElementInArray(array: any, element: any) {
-    const elementAsString = String(element);
+  isElementInArray(array: string[], element: Date) {
+    const ts = removeTimeFromDate(element)
+    const timestamp = ts.toISOString().split('T')[0]
 
-    return array.map(String).includes(elementAsString);
+    return array.map(String).includes(timestamp);
   }
 
   async sendVolumeDaily(volume: number): Promise<void> {
