@@ -111,11 +111,11 @@ export class Contract extends Viem {
 
   async sendVolumeDaily(volume: number): Promise<void> {
 
-    loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", this.timeVolume, removeTimeFromDate(this.timeVolume || new Date()))
+    loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", this.timeVolume, this.timeVolume)
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
       this.saveTime.push(this.timeVolume)
-      this.manager.sendWsVolumeToAllClients({ timestamp: removeTimeFromDate(this.timeVolume), volume: `${volume}` })
+      this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
 
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
@@ -123,7 +123,7 @@ export class Contract extends Viem {
 
       if (this.timeVolume && volume) {
         this.manager.updateDataVolumes(this.timeVolume, volume);
-        this.manager.sendWsVolumeToAllClients({ timestamp: removeTimeFromDate(this.timeVolume), volume: `${volume}` })
+        this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
 
       }
     }
@@ -324,13 +324,14 @@ export class Contract extends Viem {
   async newFetching(): Promise<void> {
     try {
       this.timeVolume = removeTimeFromDate(new Date());
-
+      this.timeVolume.toISOString().split('T')[0]
       this.blockNumber = BigInt(await this.getActualBlock());
       loggerServer.info("new fetching with actual block: ", this.blockNumber.toString());
 
     } catch (error) {
       loggerServer.fatal("newFetching: ", error);
       this.timeVolume = removeTimeFromDate(new Date());
+      this.timeVolume.toISOString().split('T')[0]
       this.blockNumber = BigInt(0);
       throw error;
     }
@@ -350,6 +351,8 @@ export class Contract extends Viem {
           this.index = 0;
           loggerServer.info("waiting for a new fetching...");
           this.saveBatch = removeTimeFromDate(new Date());
+          this.saveBatch.toISOString().split('T')[0]
+
 
           // await waiting(this.manager.config.waiting);
           await this.newFetching();
