@@ -273,6 +273,8 @@ export class Server extends DataBase {
       this.startApp();
       this.getApi();
       await this.startBdd();
+      await this.deleteAllData();
+      await this.deleteAllVolumes()
       const readAll: ResultBdd[] = await this.getData();
       this.saveTx(readAll);
       const allVolumes: ResultVolume[] = await this.getAllVolumes();
