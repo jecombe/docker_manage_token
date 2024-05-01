@@ -19,7 +19,7 @@ export class Contract extends Viem {
   isFetching: boolean;
   saveTx: string[];
   timeVolume: Date | null;
-  saveTime: Date[];
+  saveTime: string[];
   isContractPrev: bigint;
   saveBatch: Date | null
   contractAddr: string;
@@ -114,10 +114,11 @@ export class Contract extends Viem {
     loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", this.timeVolume, this.timeVolume)
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
-      this.saveTime.push(this.timeVolume)
       const ts = removeTimeFromDate(this.timeVolume)
-    
-      this.manager.sendWsVolumeToAllClients({ timestamp: ts.toISOString().split('T')[0], volume: `${volume}` })
+      const timestamp = ts.toISOString().split('T')[0]
+      this.saveTime.push(timestamp)
+
+      this.manager.sendWsVolumeToAllClients({ timestamp, volume: `${volume}` })
 
       return this.manager.insertDataVolumes(this.timeVolume, volume);
     } else {
@@ -125,9 +126,9 @@ export class Contract extends Viem {
 
       if (this.timeVolume && volume) {
         const ts = removeTimeFromDate(this.timeVolume)
-
+        const timestamp = ts.toISOString().split('T')[0]
         this.manager.updateDataVolumes(this.timeVolume, volume);
-        this.manager.sendWsVolumeToAllClients({ timestamp: ts.toISOString().split('T')[0], volume: `${volume}` })
+        this.manager.sendWsVolumeToAllClients({ timestamp, volume: `${volume}` })
 
       }
     }
