@@ -79,6 +79,20 @@ export default function Wallet() {
         setShowPopup(false);
       }, 5000);
     });
+
+    socket.on("allData", (data) => {
+      console.log("Received message from server:", data);
+      if (data.fromaddress === address || data.toaddress === address) {
+
+        setShowPopup(true);
+        setData(data);
+
+        setTimeout(() => {
+          setShowPopup(false);
+        }, 5000);
+      }
+    });
+
   }
 
   /*useEffect(() => {
@@ -301,7 +315,7 @@ export default function Wallet() {
             />
             <hr style={{ width: "100%", borderTop: "3px solid black" }} />
 
-            <Information userAddress={address} isConnect={isConnect} socket={socket}/>
+            <Information userAddress={address} isConnect={isConnect} socket={socket} />
           </>
         ) : (
           <h1> Need to connect to your metamask </h1>

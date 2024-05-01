@@ -70,7 +70,6 @@ export default function Information({ userAddress, isConnect, socket }) {
           }
         });
       } else {
-        // Sinon, ajouter simplement le nouvel objet
         return [...prevLogs, logsVolume];
       }
     });
