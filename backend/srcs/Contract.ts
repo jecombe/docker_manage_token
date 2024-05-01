@@ -123,7 +123,7 @@ export class Contract extends Viem {
 
       if (this.timeVolume && volume) {
         this.manager.updateDataVolumes(this.timeVolume, volume);
-       this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
+        //this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
 
       }
     }
@@ -240,7 +240,7 @@ export class Contract extends Viem {
 
           await this.sendData(checkExisting, isRealTime);
         } else {
-          loggerServer.error("Log already existe", parsed);
+          loggerServer.error("Log already existe");
         }
 
       }
@@ -351,7 +351,7 @@ export class Contract extends Viem {
           loggerServer.info("waiting for a new fetching...");
           this.saveBatch = removeTimeFromDate(new Date());
 
-         // await waiting(this.manager.config.waiting);
+          // await waiting(this.manager.config.waiting);
           await this.newFetching();
         }
         //this.isFetchAll = false;
