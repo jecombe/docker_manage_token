@@ -57,9 +57,17 @@ export default function Information({ userAddress, isConnect, socket }) {
   }
 
   const dispatchVolume = (logsVolume) => {
-    setVolumes(prevLogs => [...prevLogs, logsVolume]);
+    setVolumes(prevLogs => {
+      const index = prevLogs.findIndex(log => log.timestamp === logsVolume.timestamp);
+  
+      if (index !== -1) {
+        return prevLogs.map((log, i) => i === index ? { ...log, volume: logsVolume.volume } : log);
+      } else {
+        return [...prevLogs, logsVolume];
+      }
+    });
   }
-
+  
 
   const setLoading = (isLoading) => {
     setLoadingAll(isLoading);

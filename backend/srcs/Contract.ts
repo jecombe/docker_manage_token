@@ -123,7 +123,7 @@ export class Contract extends Viem {
 
       if (this.timeVolume && volume) {
         this.manager.updateDataVolumes(this.timeVolume, volume);
-        //this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
+        this.manager.sendWsVolumeToAllClients({ timestamp: this.timeVolume, volume: `${volume}` })
 
       }
     }
