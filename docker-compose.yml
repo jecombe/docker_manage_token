@@ -25,6 +25,7 @@ services:
     build: ./frontend
     environment:
       CONTRACT: "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
+      WBTC: "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241"
     volumes:
       - ./frontend:/app/
     networks:

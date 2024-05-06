@@ -5,7 +5,7 @@ import { CircleLoader } from "react-spinners";
 import Matic from "../matic/matic";
 import Usdc from "../usdc/usdc";
 import Owner from "../owner/owner";
-import { createWallet, getBalanceUser, getReadFunction } from "@/utils/request";
+import { createWallet, getBalanceUser, getReadFunction, getReadFunctions } from "@/utils/request";
 import io from "socket.io-client";
 
 import { networks } from "@/utils/networks";
@@ -17,6 +17,8 @@ export default function Wallet() {
 
   const [balance, setBalance] = useState(null);
   const [balanceBusd, setBalanceBusd] = useState(null);
+  const [balanceWbtc, setBalanceWbtc] = useState(null);
+
 
   const [isConnect, setIsConnect] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +44,8 @@ export default function Wallet() {
       const totalSupply = await getReadFunction("totalSupply");
       const ownerAddr = await getReadFunction("getOwner");
       const balanceOf = await getReadFunction("balanceOf", [address]);
+      const balanceWBTC = await getReadFunctions("balanceOf", [address], "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241", abi);
+      setBalanceWbtc(balanceWBTC);
 
       setTotalSupply(formatEther(totalSupply));
       setOwner(ownerAddr);
@@ -109,6 +113,9 @@ export default function Wallet() {
         const balance = await getBalanceUser(address);
 
         const balanceOf = await getReadFunction("balanceOf", [address]);
+        const balanceWBTC = await getReadFunctions("balanceOf", [address], "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241", abi);
+        setBalanceWbtc(balanceWBTC);
+
 
         setBalance(balance);
         setBalanceBusd(balanceOf);
@@ -316,6 +323,9 @@ export default function Wallet() {
             <hr style={{ width: "100%", borderTop: "3px solid black" }} />
 
             <Information userAddress={address} isConnect={isConnect} socket={socket} />
+
+            <Swap balanceBusd={balanceBusd} balanceWbtc={balanceWbtc} addressUser={address}/>
+
           </>
         ) : (
           <h1> Need to connect to your metamask </h1>

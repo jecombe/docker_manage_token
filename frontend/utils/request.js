@@ -7,10 +7,11 @@ import {
   getContract,
   parseAbi,
 } from "viem";
-import { polygonMumbai } from "viem/chains";
+import {  sepolia } from "viem/chains";
 import { isAddressEqual } from "viem";
 import _ from "lodash";
 import { event, parseResult } from "./utils";
+import wbtcAbi from "./abi/wbtc";
 
 export const getWriteFunction = async (functionName, args, account) => {
   return ConnectWalletClient().writeContract({
@@ -22,10 +23,31 @@ export const getWriteFunction = async (functionName, args, account) => {
   });
 };
 
+export const getWriteFunctions = async (functionName, args, account, address, abi) => {
+  return ConnectWalletClient().writeContract({
+    abi,
+    account,
+    functionName,
+    address,
+    args,
+  });
+};
+
 export const getReadFunction = async (functionName, args) => {
   return ConnectPublicClient().readContract({
     address: process.env.CONTRACT,
     abi,
+    functionName,
+    args,
+  });
+};
+
+
+
+export const getReadFunctions = async (functionName, args,  address, abiC) => {
+  return ConnectPublicClient().readContract({
+    address,
+    abi: abiC,
     functionName,
     args,
   });
@@ -40,9 +62,18 @@ export const getContractInfo = () => {
   });
 };
 
+export const getContractInfos = (address, abiC) => {
+  return getContract({
+    address,
+    abi: abiC,
+    publicClient: ConnectPublicClient(),
+    walletClient: ConnectWalletClient(),
+  });
+};
+
 export const createWallet = () => {
   return createWalletClient({
-    chain: polygonMumbai,
+    chain: sepolia,
     transport: custom(window.ethereum),
   });
 };
@@ -63,6 +94,10 @@ export const sendTransaction = (value, to, account) => {
     account,
     value,
   });
+};
+
+export const parseNumberToEth = (number) => {
+  return Number(formatEther(number.toString())).toFixed(2);
 };
 
 export const getActualBlock = () => {
