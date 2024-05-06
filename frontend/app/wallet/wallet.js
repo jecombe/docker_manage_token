@@ -11,6 +11,7 @@ import io from "socket.io-client";
 import { networks } from "@/utils/networks";
 import "./wallet.css";
 import Information from "../info/information";
+import Swap from "../swap/swap";
 
 export default function Wallet() {
   const [address, setAddress] = useState(null);
