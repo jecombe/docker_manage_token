@@ -195,8 +195,9 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
       //swapTokenForExactToken
     }
     else {
-      console.log("EEEEEEEEEEEEEEEEEEEEEEE",amountABig, amountBBig);
       const path = [process.env.CONTRACT, process.env.WBTC]
+      console.log("EEEEEEEEEEEEEEEEEEEEEEE",amountABig, amountBBig, path);
+
      //  swapExactTokenForToken
    ///  export const getWriteFunctions = async (functionName, args, account, address, abi) => {
 
