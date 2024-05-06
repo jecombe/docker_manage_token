@@ -12,8 +12,6 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [amountABig, setAmountABig] = useState(BigInt(0));
   const [amountBBig, setAmountBBig] = useState(BigInt(0));
   const [slippage, setSlippage] = useState(0);
-  //const [router, setRouter] = useState(getContractInfos("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi))
-  // const [factory, setFactory] = useState(getContractInfos("0xed4016059188BFaF1A7F74Fca0ae9A1514F36e75", factoryAbi))
   const [pair, setPair] = useState(getContractInfos("0x277B37e50272f74f7Bc00a857C99dAe937378E3f", pairAbi))
   const [reserve, setReserve] = useState([]);
   const [afterSplippage, setAfterSplippage] = useState(0);
@@ -101,23 +99,25 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   }
 
 
-  const calculeAmountOut = (value, id) => {
+  const calculeAmountOut = async (value, id) => {
 
     if (id === 'BUSD') {
       let amountReceive = 0;
       const intValue = parseUnits(value.toString(), 18);
 
       if (isArrowUp) {
-        console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
         setAmountB(value)
         setAmountBBig(intValue)
-        amountReceive = getAmountIn(intValue, reserve[1], reserve[0]);
+        const slippageAmount = intValue * BigInt(slippage) / BigInt(100);
+        const amt = intValue - slippageAmount;
+        amountReceive = getAmountIn(amt, reserve[1], reserve[0]);
+        console.log(amountReceive);
+        console.log(formatUnits(amountReceive, 8));
+
         setAmountA(formatUnits(amountReceive, 8));
         setAmountABig(BigInt(amountReceive))
-        const amountReceiveBigInt = BigInt(amountReceive);
-        const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
-        const amt = amountReceiveBigInt - slippageAmount;
-        setAfterSplippage(formatUnits(amt, 8))
+ 
+        setAfterSplippage(formatUnits(amt, 18))
       }
       else {
         setAmountA(value)
@@ -156,15 +156,15 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
         setAmountB(value)
         setAmountBBig(intValue)
 
-        amountReceive = getAmountOut(intValue, reserve[1], reserve[0])
-        setAmountA(formatUnits(amountReceive, 18));
-        setAmountABig(BigInt(amountReceive))
+        const slippageAmount = intValue * BigInt(slippage) / BigInt(100);
+        const amt = intValue - slippageAmount;
 
-        const amountReceiveBigInt = BigInt(amountReceive);
-        const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
-        const amt = amountReceiveBigInt - slippageAmount;
+        const res = getAmountIn(amt, reserve[0], reserve[1])
+        console.log(formatUnits(res, 18));
+        setAmountA(formatUnits(res, 18));
+        setAmountABig(BigInt(res))
 
-        setAfterSplippage(formatUnits(amt, 18))
+        setAfterSplippage(formatUnits(amt, 8))
       }
     }
 
@@ -185,25 +185,24 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
       console.log(amountABig, amountBBig);
       const path = [process.env.WBTC, process.env.CONTRACT]
-     //  swapExactTokenForToken
-   ///  export const getWriteFunctions = async (functionName, args, account, address, abi) => {
-     const hash = await getWriteFunctions("swapTokensForExactTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
+      //  swapExactTokenForToken
+      ///  export const getWriteFunctions = async (functionName, args, account, address, abi) => {
+      const hash = await getWriteFunctions("swapTokensForExactTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
 
-     await waitingTransaction(hash);
+      await waitingTransaction(hash);
 
 
       //swapTokenForExactToken
     }
     else {
+      console.log("EEEEEEEEEEEEEEEEEEEEEEE", amountABig, amountBBig);
       const path = [process.env.CONTRACT, process.env.WBTC]
-      console.log("EEEEEEEEEEEEEEEEEEEEEEE",amountABig, amountBBig, path);
+      //  swapExactTokenForToken
+      ///  export const getWriteFunctions = async (functionName, args, account, address, abi) => {
 
-     //  swapExactTokenForToken
-   ///  export const getWriteFunctions = async (functionName, args, account, address, abi) => {
-
-   console.log(routerAbi, addressUser);
-     const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
-     await waitingTransaction(hash);
+      console.log(routerAbi, addressUser);
+      const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
+      await waitingTransaction(hash);
 
     }
   };
@@ -239,17 +238,20 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
       <form onSubmit={handleSwap}>
         <div className="form-group">
           <label htmlFor="BUSD">{isArrowUp ? 'WBTC' : 'BUSD'}</label>
-          <input
-            type="text"
-            id="BUSD"
-            value={amountA.toString()}
-            onChange={handleAmountChange}
-            inputMode="decimal"
-            pattern="[0-9]*[.,]?[0-9]*"
-          />
-          <div className={`max`} onClick={(e) => handleMaxClick(isArrowUp ? 'WBTC' : 'BUSD')}>Max</div>
-
-          <div>{isArrowUp ? afterSplippage : ""}</div>
+          <div className="input-container">
+            <input
+              type="text"
+              id="BUSD"
+              value={amountA.toString()}
+              onChange={handleAmountChange}
+              inputMode="decimal"
+              pattern="[0-9]*[.,]?[0-9]*"
+            />
+            <div className="balance-container">
+              <div>Balance: {isArrowUp ? formatUnits(balanceWbtc.toString(), 8) : formatUnits(balanceBusd.toString(), 18)}</div>
+              <div className="max" onClick={(e) => handleMaxClick(isArrowUp ? 'WBTC' : 'BUSD')}>Max</div>
+            </div>
+          </div>
         </div>
 
         <div className="invert-container">
@@ -266,9 +268,9 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
             inputMode="decimal"
             pattern="[0-9]*[.,]?[0-9]*"
           />
-          <div>{!isArrowUp ? afterSplippage : ""}</div>
-
+          <div>You receive: {afterSplippage}</div>
         </div>
+
         <div className="form-group">
           <label htmlFor="slippage">Slippage ({slippage}%)</label>
           <div className="slider-container">
