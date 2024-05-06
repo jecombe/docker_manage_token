@@ -9,6 +9,7 @@
   
   .form-group {
     margin-bottom: 15px;
+    position: relative;
   }
   
   label {
@@ -18,7 +19,7 @@
   
   select,
   input[type="number"] {
-    width: 100%;
+    width: calc(100% - 40px); /* Réduire la largeur pour laisser de l'espace pour le bouton "Max" */
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -64,14 +65,19 @@
     cursor: pointer; /* Curseur indiquant qu'il s'agit d'un élément cliquable */
     position: absolute; /* Assurez-vous que la position est relative */
   }
+  
   .invert-icon.up {
     transform: rotate(180deg);
   }
   
   .max {
-    position: absolute;
-   /* Pour ajuster le positionnement horizontal si nécessaire */
     cursor: pointer; /* Pour indiquer qu'il s'agit d'un élément cliquable */
-    /* Ajoutez d'autres styles selon vos besoins */
+   /* Aligner verticalement au centre */
+    color:#bc09cc
+  }
+  .balance-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Ajout de cette ligne pour aligner verticalement les éléments */
   }
   

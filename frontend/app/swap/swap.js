@@ -5,6 +5,7 @@ import routerAbi from '@/utils/abi/router';
 import factoryAbi from '@/utils/abi/factory';
 import pairAbi from '@/utils/abi/pair';
 import { formatEther, formatUnits, parseUnits } from 'viem';
+import { ethers } from 'ethers';
 
 const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [amountA, setAmountA] = useState(BigInt(0));
@@ -12,6 +13,8 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [amountABig, setAmountABig] = useState(BigInt(0));
   const [amountBBig, setAmountBBig] = useState(BigInt(0));
   const [slippage, setSlippage] = useState(0);
+  const [router, setRouter] = useState(getContractInfos("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi))
+  const [factory, setFactory] = useState(getContractInfos("0xed4016059188BFaF1A7F74Fca0ae9A1514F36e75", factoryAbi))
   const [pair, setPair] = useState(getContractInfos("0x277B37e50272f74f7Bc00a857C99dAe937378E3f", pairAbi))
   const [reserve, setReserve] = useState([]);
   const [afterSplippage, setAfterSplippage] = useState(0);
