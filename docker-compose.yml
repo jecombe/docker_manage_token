@@ -2,6 +2,10 @@ version: '3.9'
 
 services:
   backend:
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
     container_name: backend
     build: ./backend
     expose:
@@ -15,12 +19,17 @@ services:
       POSTGRES_DB: logs_bdd
       PORT_SERVER: 8000
       CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
+      WBTC: "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241"
     volumes:
       - ./backend:/usr/src/app/
     networks:
       - my_network
 
   frontend:
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
     container_name: frontend
     build: ./frontend
     environment:
