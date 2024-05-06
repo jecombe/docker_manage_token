@@ -5,7 +5,6 @@ import routerAbi from '@/utils/abi/router';
 import factoryAbi from '@/utils/abi/factory';
 import pairAbi from '@/utils/abi/pair';
 import { formatEther, formatUnits, parseUnits } from 'viem';
-import { ethers } from 'ethers';
 
 const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [amountA, setAmountA] = useState(BigInt(0));
