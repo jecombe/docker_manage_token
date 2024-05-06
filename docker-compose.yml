@@ -2,27 +2,23 @@ version: '3.9'
 
 services:
   backend:
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "5"
-      container_name: backend
-      build: ./backend
-      expose:
-        - "8000"
-      ports:
-        - "8000:8000"
-      environment:
-        POSTGRES_HOST: database
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: test
-        POSTGRES_DB: logs_bdd
-        PORT_SERVER: 8000
-        CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
-      volumes:
-        - ./backend:/usr/src/app/
-      networks:
-        - my_network
+    container_name: backend
+    build: ./backend
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_HOST: database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: logs_bdd
+      PORT_SERVER: 8000
+      CONTRACT: "6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac"
+    volumes:
+      - ./backend:/usr/src/app/
+    networks:
+      - my_network
 
   frontend:
     container_name: frontend
