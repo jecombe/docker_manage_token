@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react';
 import "./swap.css";
 import { getContractInfos, getReadFunctions, getWriteFunctions, waitingTransaction } from '@/utils/request';
 import routerAbi from '@/utils/abi/router';
-import factoryAbi from '@/utils/abi/factory';
 import pairAbi from '@/utils/abi/pair';
-import { formatEther, formatUnits, parseUnits } from 'viem';
-import { ethers } from 'ethers';
+import { formatUnits, parseUnits } from 'viem';
 import abi from '@/utils/abi';
 
 const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
@@ -14,30 +12,25 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [amountABig, setAmountABig] = useState(BigInt(0));
   const [amountBBig, setAmountBBig] = useState(BigInt(0));
   const [slippage, setSlippage] = useState(0);
-  const [router, setRouter] = useState(getContractInfos("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi))
-  const [factory, setFactory] = useState(getContractInfos("0xed4016059188BFaF1A7F74Fca0ae9A1514F36e75", factoryAbi))
   const [pair, setPair] = useState(getContractInfos("0x277B37e50272f74f7Bc00a857C99dAe937378E3f", pairAbi))
   const [reserve, setReserve] = useState([]);
   const [afterSplippage, setAfterSplippage] = useState(0);
-  const [isSwapDisabled, setIsSwapDisabled] = useState(true); // État pour désactiver le bouton Swap
+  const [isSwapDisabled, setIsSwapDisabled] = useState(true);
 
-  const [isArrowUp, setIsArrowUp] = useState(false); // État pour suivre l'état de la flèche
+  const [isArrowUp, setIsArrowUp] = useState(false);
 
   const handleInvert = () => {
-    setIsArrowUp(!isArrowUp); // Inverser l'état de la flèche
-    // Inverser les montants des champs WBTC et BUSD
+    setIsArrowUp(!isArrowUp);
     setAmountA(amountB);
     setAmountB(amountA);
 
-    // Inverser les ID des champs d'entrée
-    document.getElementById('BUSD').id = 'WBTC'; // changez l'ID de BUSD en WBTC
-    document.getElementById('WBTC').id = 'BUSD'; // changez l'ID de WBTC en BUSD
+    document.getElementById('BUSD').id = 'WBTC';
+    document.getElementById('WBTC').id = 'BUSD';
   };
   const [priceSlippage, setPriceSlippage] = useState(BigInt(0));
 
 
   useEffect(() => {
-    // Fonction pour récupérer les réserves de la paire de liquidités
     const getReserves = async () => {
       try {
         const res = await getReadFunctions("getReserves", [], "0x277B37e50272f74f7Bc00a857C99dAe937378E3f", pairAbi);
@@ -50,7 +43,6 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     getReserves();
   }, [pair]);
   useEffect(() => {
-    // Mettre à jour les ID des champs d'entrée lorsque isArrowUp change
     const invertInputIds = () => {
       const busdInput = document.getElementById('BUSD');
       const wbtcInput = document.getElementById('WBTC');
@@ -63,11 +55,9 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
       }
     };
 
-    invertInputIds(); // Appeler la fonction lors du premier rendu
+    invertInputIds();
 
-    // Nettoyer l'effet
     return () => {
-      // Vous pouvez nettoyer ici si nécessaire
     };
   }, [isArrowUp]);
 
@@ -87,14 +77,6 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     return amountOut.toString();
   }
 
-
-  const getAmountOutContract = async (amountIn) => {
-    return getReadFunctions("getAmountOut", [amountIn, reserve[0], reserve[1]], "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
-  }
-
-  const getAmountInContract = async (amountIn, reserveIn, reserveOut) => {
-    return getReadFunctions("getAmountIn", [amountIn, reserveIn, reserveOut], "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
-  }
 
   const getAmtAfterSlippage = (slippage, amount) => {
     const amountReceiveBigInt = BigInt(amount);
