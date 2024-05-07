@@ -92,7 +92,7 @@ export class Contract extends Viem {
 
       else if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
         parsedLog.from = currentLog.args.owner;
-        parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || ''; // Défaut à une chaîne vide si c'est undefined
+        parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || '';
         parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
@@ -111,8 +111,6 @@ export class Contract extends Viem {
   }
 
   async sendVolumeDaily(volume: number): Promise<void> {
-
-    loggerServer.fatal("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", this.timeVolume, this.timeVolume)
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
       const ts = removeTimeFromDate(this.timeVolume)
@@ -222,6 +220,8 @@ export class Contract extends Viem {
     for (const log of logs) {
       if (log.eventName === 'Transfer') {
         volume += BigInt(log.value);
+        const valueAsInteger = BigInt(Math.round(Number(log.value) * 1e18));
+        volume += valueAsInteger;
       }
     }
     return `${volume}`;
