@@ -215,18 +215,23 @@ export class Contract extends Viem {
   }
 
 
+
   calculateVolume(logs: ParsedLog[]): string {
+
     let volume: bigint = BigInt(0);
     for (const log of logs) {
-      if (log.eventName === 'Transfer') {  
-        const valueAsInteger = BigInt(Math.round(Number(log.value) * 1e18));
-  
-        volume += valueAsInteger;
+      if (log.eventName === 'Transfer') {
+        let value = BigInt(0)
+        const isScientificNotation = /^[0-9]+\.?[0-9]*[eE][-+]?[0-9]+$/.test(log.value.toString());
+
+        if (isScientificNotation) value = BigInt(Math.round(Number(log.value) * 1e18));
+        else value = BigInt(log.value)
+
+        volume += value;
       }
     }
-    return volume.toString();
+    return `${volume}`;
   }
-
 
   savingTx(parsed: ParsedLog[]) {
     parsed.map((el: ParsedLog) => {
