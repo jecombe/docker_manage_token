@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import "./swap.css";
-import { getContractInfos, getReadFunctions, getWriteFunctions } from '@/utils/request';
+import { getContractInfos, getReadFunctions, getWriteFunctions, waitingTransaction } from '@/utils/request';
 import routerAbi from '@/utils/abi/router';
 import factoryAbi from '@/utils/abi/factory';
 import pairAbi from '@/utils/abi/pair';
-import { formatUnits, parseUnits } from 'viem';
+import { formatEther, formatUnits, parseUnits } from 'viem';
+import { ethers } from 'ethers';
+import abi from '@/utils/abi';
 
 const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [amountA, setAmountA] = useState(BigInt(0));
@@ -12,6 +14,8 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [amountABig, setAmountABig] = useState(BigInt(0));
   const [amountBBig, setAmountBBig] = useState(BigInt(0));
   const [slippage, setSlippage] = useState(0);
+  const [router, setRouter] = useState(getContractInfos("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi))
+  const [factory, setFactory] = useState(getContractInfos("0xed4016059188BFaF1A7F74Fca0ae9A1514F36e75", factoryAbi))
   const [pair, setPair] = useState(getContractInfos("0x277B37e50272f74f7Bc00a857C99dAe937378E3f", pairAbi))
   const [reserve, setReserve] = useState([]);
   const [afterSplippage, setAfterSplippage] = useState(0);
@@ -116,7 +120,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
         setAmountA(formatUnits(amountReceive, 8));
         setAmountABig(BigInt(amountReceive))
- 
+
         setAfterSplippage(formatUnits(amt, 18))
       }
       else {
@@ -176,33 +180,37 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     calculeAmountOut(value, id)
   };
 
+  const approveFunction = async (spenderAddress, contractAddress, amount) => {
+    try {
+      const hashApprove = await getWriteFunctions("approve", [spenderAddress, amount], addressUser, contractAddress, abi)
+      await waitingTransaction(hashApprove);
+      return hashApprove;
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   const handleSwap = async (e) => {
     e.preventDefault();
-    console.log("SWAP", isArrowUp);
-    const deadline = Math.floor(Date.now() / 1000) + 60 * 3; // 3 minutes à partir de maintenant
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 3;
 
     if (isArrowUp) {
-
-      console.log(amountABig, amountBBig);
       const path = [process.env.WBTC, process.env.CONTRACT]
-      //  swapExactTokenForToken
-      ///  export const getWriteFunctions = async (functionName, args, account, address, abi) => {
+      console.log("swapTokensForExactTokens");
+      const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241", amountABig)
+      console.log("APPROVED", hashApprove);
+
       const hash = await getWriteFunctions("swapTokensForExactTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
-
-      await waitingTransaction(hash);
-
-
-      //swapTokenForExactToken
+      console.log("transaction successfully: ", hash);
     }
     else {
       const path = [process.env.CONTRACT, process.env.WBTC]
-      //  swapExactTokenForToken
-      ///  export const getWriteFunctions = async (functionName, args, account, address, abi) => {
+      const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac", amountABig)
+      console.log("APPROVED", hashApprove);
 
-      console.log(routerAbi, addressUser);
       const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
       await waitingTransaction(hash);
-
+      console.log("transaction successfully: ", hash);
     }
   };
 
