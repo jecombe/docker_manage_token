@@ -20,15 +20,13 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [isArrowUp, setIsArrowUp] = useState(false);
 
   const handleInvert = () => {
-    setIsArrowUp(!isArrowUp);
+    setIsArrowUp(!isArrowUp); 
     setAmountA(amountB);
     setAmountB(amountA);
 
     document.getElementById('BUSD').id = 'WBTC';
     document.getElementById('WBTC').id = 'BUSD';
   };
-  const [priceSlippage, setPriceSlippage] = useState(BigInt(0));
-
 
   useEffect(() => {
     const getReserves = async () => {
@@ -85,38 +83,46 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   }
 
 
-  const calculeAmountOut = async (value, id) => {
+  const calculeAmountOut = async (value, id, isSlippage) => {
 
     if (id === 'BUSD') {
       let amountReceive = 0;
       const intValue = parseUnits(value.toString(), 18);
 
       if (isArrowUp) {
-        setAmountB(value)
-        setAmountBBig(intValue)
+        if (!isSlippage) {
+
+          setAmountB(value)
+          setAmountBBig(intValue)
+        }
         const slippageAmount = intValue * BigInt(slippage) / BigInt(100);
         const amt = intValue - slippageAmount;
         amountReceive = getAmountIn(amt, reserve[1], reserve[0]);
-        console.log(amountReceive);
-        console.log(formatUnits(amountReceive, 8));
+        if (!isSlippage) {
 
-        setAmountA(formatUnits(amountReceive, 8));
-        setAmountABig(BigInt(amountReceive))
+          setAmountA(formatUnits(amountReceive, 8));
+          setAmountABig(BigInt(amountReceive))
+        }
 
         setAfterSplippage(formatUnits(amt, 18))
       }
       else {
-        setAmountA(value)
-        setAmountABig(intValue)
 
+        if (!isSlippage) {
+          setAmountA(value)
+          setAmountABig(intValue)
+        }
         amountReceive = getAmountOut(intValue, reserve[0], reserve[1])
-        setAmountB(formatUnits(amountReceive, 8));
-        setAmountBBig(BigInt(amountReceive))
+        if (!isSlippage) {
+          setAmountB(formatUnits(amountReceive, 8));
+          setAmountBBig(BigInt(amountReceive))
+        }
+
         const amountReceiveBigInt = BigInt(amountReceive);
         const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
         const amt = amountReceiveBigInt - slippageAmount;
-
         setAfterSplippage(formatUnits(amt, 8))
+
       }
 
 
@@ -126,12 +132,18 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
       let amountReceive = 0;
 
       if (isArrowUp) {
-        setAmountA(value)
-        setAmountABig(intValue)
+        if (!isSlippage) {
+
+          setAmountA(value)
+          setAmountABig(intValue)
+        }
 
         amountReceive = getAmountIn(intValue, reserve[0], reserve[1]);
-        setAmountB(formatUnits(amountReceive, 18));
-        setAmountBBig(BigInt(amountReceive))
+        if (!isSlippage) {
+
+          setAmountB(formatUnits(amountReceive, 18));
+          setAmountBBig(BigInt(amountReceive))
+        }
 
         const amountReceiveBigInt = BigInt(amountReceive);
         const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
@@ -139,17 +151,20 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
         setAfterSplippage(formatUnits(amt, 18))
       }
       else {
-        setAmountB(value)
-        setAmountBBig(intValue)
+        if (!isSlippage) {
 
+          setAmountB(value)
+          setAmountBBig(intValue)
+        }
         const slippageAmount = intValue * BigInt(slippage) / BigInt(100);
         const amt = intValue - slippageAmount;
 
         const res = getAmountIn(amt, reserve[0], reserve[1])
-        console.log(formatUnits(res, 18));
-        setAmountA(formatUnits(res, 18));
-        setAmountABig(BigInt(res))
+        if (!isSlippage) {
 
+          setAmountA(formatUnits(res, 18));
+          setAmountABig(BigInt(res))
+        }
         setAfterSplippage(formatUnits(amt, 8))
       }
     }
@@ -159,13 +174,13 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const handleAmountChange = async (e) => {
     const { id, value } = e.target;
 
-    calculeAmountOut(value, id)
+    calculeAmountOut(value, id, false)
   };
 
   const approveFunction = async (spenderAddress, contractAddress, amount) => {
     try {
       const hashApprove = await getWriteFunctions("approve", [spenderAddress, amount], addressUser, contractAddress, abi)
-      await waitingTransaction(hashApprove);
+     await waitingTransaction(hashApprove);
       return hashApprove;
     } catch (error) {
       console.error(error)
@@ -175,50 +190,63 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const handleSwap = async (e) => {
     e.preventDefault();
     const deadline = Math.floor(Date.now() / 1000) + 60 * 3;
-
-    if (isArrowUp) {
-      const path = [process.env.WBTC, process.env.CONTRACT]
-      console.log("swapTokensForExactTokens");
-      const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241", amountABig)
-      console.log("APPROVED", hashApprove);
-
-      const hash = await getWriteFunctions("swapTokensForExactTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
-      console.log("transaction successfully: ", hash);
+    try {
+      if (isArrowUp) {
+        const path = [process.env.WBTC, process.env.CONTRACT]
+         //const path = [process.env.CONTRACT, process.env.WBTC]
+         console.log("waiting approve....");
+    
+          const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241", amountABig)
+          console.log("APPROVED", hashApprove);
+         console.log("swapTokensForExactTokens", formatUnits(amountABig, 8), formatUnits(amountBBig, 18));
+    
+          const hash = await getWriteFunctions("swapTokensForExactTokens", [parseUnits(amountABig, 8), parseUnits(amountBBig, 18), path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
+          console.log("transaction successfully: ", hash);
+        }
+        else {
+          const path = [process.env.CONTRACT, process.env.WBTC]
+          console.log("swapExactTokensForTokens");
+    
+          const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac", amountABig)
+          console.log("APPROVED", hashApprove);
+    
+          const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
+          await waitingTransaction(hash);
+          console.log("transaction successfully: ", hash);
+        }
+      
+    } catch (error) {
+      console.log(error);
+      
     }
-    else {
-      const path = [process.env.CONTRACT, process.env.WBTC]
-      const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac", amountABig)
-      console.log("APPROVED", hashApprove);
-
-      const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
-      await waitingTransaction(hash);
-      console.log("transaction successfully: ", hash);
-    }
+ 
   };
 
   const handleSlippageChange = (e) => {
-    console.log(isArrowUp);
     setSlippage(e.target.value);
+    calculeAmountOut(amountA, 'BUSD', true);
+    calculeAmountOut(amountB, 'WBTC', true);
   };
-
 
   const handleMaxClick = (token) => {
 
     if (token === "BUSD") {
-      calculeAmountOut(formatUnits(balanceBusd.toString(), 18), token);
+      calculeAmountOut(formatUnits(balanceBusd.toString(), 18), token, false);
     }
     if (token === "WBTC") {
-      calculeAmountOut(formatUnits(balanceWbtc.toString(), 8), token);
+      calculeAmountOut(formatUnits(balanceWbtc.toString(), 8), token, false);
     }
   }
 
 
   useEffect(() => {
-    console.log(Number(balanceBusd.toString()));
     setIsSwapDisabled(true)
-    // setIsSwapDisabled(Number(balanceBusd.toString()) === 0 || Number(balanceWbtc.toString()) === 0);
   }, [balanceBusd, balanceWbtc]);
 
+
+  const printBalance = (balance, decimal) => {
+    return parseFloat(formatUnits(balance.toString(), decimal)).toFixed(3)
+  }
 
 
   return (
@@ -237,7 +265,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
               pattern="[0-9]*[.,]?[0-9]*"
             />
             <div className="balance-container">
-              <div>Balance: {isArrowUp ? formatUnits(balanceWbtc.toString(), 8) : formatUnits(balanceBusd.toString(), 18)}</div>
+              <div>Balance: {isArrowUp ? printBalance(balanceWbtc, 8) : printBalance(balanceBusd, 18)}</div>
               <div className="max" onClick={(e) => handleMaxClick(isArrowUp ? 'WBTC' : 'BUSD')}>Max</div>
             </div>
           </div>
