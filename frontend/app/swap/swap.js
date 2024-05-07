@@ -3,7 +3,7 @@ import "./swap.css";
 import { getContractInfos, getReadFunctions, getWriteFunctions, waitingTransaction } from '@/utils/request';
 import routerAbi from '@/utils/abi/router';
 import pairAbi from '@/utils/abi/pair';
-import { formatUnits, parseUnits } from 'viem';
+import { formatUnits, parseEther, parseUnits } from 'viem';
 import abi from '@/utils/abi';
 
 const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
@@ -20,7 +20,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [isArrowUp, setIsArrowUp] = useState(false);
 
   const handleInvert = () => {
-    setIsArrowUp(!isArrowUp); 
+    setIsArrowUp(!isArrowUp);
     setAmountA(amountB);
     setAmountB(amountA);
 
@@ -88,7 +88,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     if (id === 'BUSD') {
       let amountReceive = 0;
       const intValue = parseUnits(value.toString(), 18);
-
+      console.log(isArrowUp);
       if (isArrowUp) {
         if (!isSlippage) {
 
@@ -98,6 +98,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
         const slippageAmount = intValue * BigInt(slippage) / BigInt(100);
         const amt = intValue - slippageAmount;
         amountReceive = getAmountIn(amt, reserve[1], reserve[0]);
+
         if (!isSlippage) {
 
           setAmountA(formatUnits(amountReceive, 8));
@@ -113,6 +114,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
           setAmountABig(intValue)
         }
         amountReceive = getAmountOut(intValue, reserve[0], reserve[1])
+
         if (!isSlippage) {
           setAmountB(formatUnits(amountReceive, 8));
           setAmountBBig(BigInt(amountReceive))
@@ -126,21 +128,20 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
       }
 
 
-    } else if (id === 'WBTC') {
+    }
+    if (id === 'WBTC') {
       const intValue = parseUnits(value.toString(), 8);
 
       let amountReceive = 0;
 
       if (isArrowUp) {
         if (!isSlippage) {
-
           setAmountA(value)
           setAmountABig(intValue)
         }
+        amountReceive = getAmountOut(intValue, reserve[1], reserve[0])
 
-        amountReceive = getAmountIn(intValue, reserve[0], reserve[1]);
         if (!isSlippage) {
-
           setAmountB(formatUnits(amountReceive, 18));
           setAmountBBig(BigInt(amountReceive))
         }
@@ -167,6 +168,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
         }
         setAfterSplippage(formatUnits(amt, 8))
       }
+
     }
 
   }
@@ -180,7 +182,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const approveFunction = async (spenderAddress, contractAddress, amount) => {
     try {
       const hashApprove = await getWriteFunctions("approve", [spenderAddress, amount], addressUser, contractAddress, abi)
-     await waitingTransaction(hashApprove);
+      await waitingTransaction(hashApprove);
       return hashApprove;
     } catch (error) {
       console.error(error)
@@ -192,34 +194,31 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     const deadline = Math.floor(Date.now() / 1000) + 60 * 3;
     try {
       if (isArrowUp) {
-        const path = [process.env.WBTC, process.env.CONTRACT]
-         //const path = [process.env.CONTRACT, process.env.WBTC]
-         console.log("waiting approve....");
-    
-          const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241", amountABig)
-          console.log("APPROVED", hashApprove);
-         console.log("swapTokensForExactTokens", formatUnits(amountABig, 8), formatUnits(amountBBig, 18));
-    
-          const hash = await getWriteFunctions("swapTokensForExactTokens", [parseUnits(amountABig, 8), parseUnits(amountBBig, 18), path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
-          console.log("transaction successfully: ", hash);
-        }
-        else {
-          const path = [process.env.CONTRACT, process.env.WBTC]
-          console.log("swapExactTokensForTokens");
-    
-          const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac", amountABig)
-          console.log("APPROVED", hashApprove);
-    
-          const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi)
-          await waitingTransaction(hash);
-          console.log("transaction successfully: ", hash);
-        }
-      
+        console.log("swapExactTokensForTokens");
+        const path = [process.env.WBTC, process.env.CONTRACT];
+
+        const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241", amountABig);
+        console.log("APPROVED", hashApprove);
+
+        const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
+        await waitingTransaction(hash);
+        console.log("transaction successfully: ", hash);
+      } else {
+        console.log("swapExactTokensForTokens");
+        const path = [process.env.CONTRACT, process.env.WBTC];
+
+        const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac", amountABig);
+        console.log("APPROVED", hashApprove);
+
+        const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
+        await waitingTransaction(hash);
+        console.log("transaction successfully: ", hash);
+      }
+
     } catch (error) {
-      console.log(error);
-      
+      console.error("Error:", error);
     }
- 
+
   };
 
   const handleSlippageChange = (e) => {
