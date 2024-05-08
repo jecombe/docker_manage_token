@@ -220,8 +220,10 @@ export class Contract extends Viem {
     for (const log of logs) {
       if (log.eventName === 'Transfer') {
         let value = BigInt(0);
-
+        
         value = BigInt(Math.round(log.value * 33)); // Vous pouvez ajuster ici
+        console.log(BigInt(log.value), volume, value);
+        
         volume += value;
       }
     }
