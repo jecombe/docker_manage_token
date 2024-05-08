@@ -73,7 +73,7 @@ export class Contract extends Viem {
       from: "",
       to: "",
       blockNumber: currentLog.blockNumber.toString(),
-      value: BigInt(0),
+      value: 0,
       transactionHash: currentLog.transactionHash,
     };
   }
@@ -86,14 +86,14 @@ export class Contract extends Viem {
       if (currentLog.eventName === "Transfer" && currentLog.args.from && currentLog.args.to) {
         parsedLog.from = currentLog.args.from;
         parsedLog.to = currentLog.args.to;
-        parsedLog.value = currentLog.args.value || BigInt(0);
+        parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
 
       else if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
         parsedLog.from = currentLog.args.owner;
         parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || '';
-        parsedLog.value = currentLog.args.value || BigInt(0);
+        parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
         parsedLog.transactionHash = currentLog.transactionHash;
       }
       else loggerServer.info("Uknow envent come here: ", currentLog);
@@ -110,7 +110,7 @@ export class Contract extends Viem {
     return array.map(String).includes(timestamp);
   }
 
-  async sendVolumeDaily(volume: bigint): Promise<void> {
+  async sendVolumeDaily(volume: number): Promise<void> {
 
     if (this.timeVolume && !this.isElementInArray(this.saveTime, this.timeVolume)) {
       const ts = removeTimeFromDate(this.timeVolume)
@@ -215,17 +215,27 @@ export class Contract extends Viem {
   }
 
 
-  calculateVolume(logs: ParsedLog[]): bigint {
+  calculateVolume(logs: ParsedLog[]): string {
     let volume = BigInt(0);
     for (const log of logs) {
       if (log.eventName === 'Transfer') {
-        volume += log.value;
+        let value = BigInt(0);
 
+        const numericValue = Math.round(log.value * 33); // Arrondir et convertir en entier
+        value = BigInt(numericValue); // Convertir en BigInt
+
+        console.log(value); // Assurez-vous que value est un nombre entier
+
+        volume += value;
       }
+      console.log("FIN ", volume.toString(), volume, log.value);
 
     }
+console.log("RETURN", volume);
 
-    return volume;
+
+
+    return volume.toString();
   }
   /*calculateVolume(logs: ParsedLog[]): string {
     let volume: bigint = BigInt(0);
@@ -248,7 +258,7 @@ export class Contract extends Viem {
     try {
       if (!_.isEmpty(parsed)) {
         const checkExisting: ParsedLog[] = this.isExist(parsed);
-        this.sendVolumeDaily(this.calculateVolume(checkExisting));
+        this.sendVolumeDaily(Number(this.calculateVolume(checkExisting)));
 
         if (!_.isEmpty(checkExisting)) {
 

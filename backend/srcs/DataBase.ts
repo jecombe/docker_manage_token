@@ -185,7 +185,7 @@ export class DataBase {
     }
   }
 
-  async insertDataVolumes(timestamp: string, volume: bigint): Promise<void> {
+  async insertDataVolumes(timestamp: string, volume: number): Promise<void> {
     const query: Query = {
       text: 'INSERT INTO contract_volumes (timestamp, volume) VALUES ($1, $2)',
       values: [timestamp, volume],
@@ -200,7 +200,7 @@ export class DataBase {
     }
   }
 
-  async updateDataVolumes(timestamp: Date, volume: bigint): Promise<void> {
+  async updateDataVolumes(timestamp: Date, volume: number): Promise<void> {
     const query: Query = {
       text: 'UPDATE contract_volumes SET volume = $1 WHERE timestamp = $2',
       values: [volume, timestamp],

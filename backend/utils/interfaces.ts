@@ -32,7 +32,7 @@ export interface ParsedLog {
     from: string;
     to: string;
     blockNumber: string;
-    value: bigint;
+    value: number;
     transactionHash: string;
 }
 
