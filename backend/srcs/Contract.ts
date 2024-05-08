@@ -231,6 +231,7 @@ export class Contract extends Viem {
       console.log("FIN ", volume.toString(), volume, log.value);
 
     }
+console.log("RETURN", volume.toString());
 
 
 
