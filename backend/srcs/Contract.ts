@@ -221,8 +221,10 @@ export class Contract extends Viem {
       if (log.eventName === 'Transfer') {
         let value = BigInt(0);
         
-        value = BigInt(Math.round(log.value * 33)); // Vous pouvez ajuster ici
-        console.log(BigInt(log.value), volume, value);
+        const numericValue = Math.round(log.value * 33); // Arrondir et convertir en entier
+        value = BigInt(numericValue); // Convertir en BigInt
+        
+        console.log(value); // Assurez-vous que value est un nombre entier
         
         volume += value;
       }
