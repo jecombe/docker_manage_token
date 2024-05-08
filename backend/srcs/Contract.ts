@@ -227,9 +227,10 @@ export class Contract extends Viem {
             } else if (typeof log.value === 'number') {
                 value = BigInt(Math.round(log.value * 1e18));
             } else {
+            volume += value;
+
             }
 
-            volume += value;
         }
     }
     return `${volume}`;
