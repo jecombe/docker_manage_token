@@ -215,25 +215,30 @@ export class Contract extends Viem {
   }
 
 
-
-  calculateVolume = (logs: ParsedLog[]):string =>  {
+  calculateVolume (logs: ParsedLog[]): string {
     let volume = BigInt(0);
     for (const log of logs) {
         if (log.eventName === 'Transfer') {
             let value = BigInt(0);
-          console.log("LLLLLLLLLLLLLLLLLLLLLLLLLLL", log);
-          
+
             if (typeof log.value === 'string') {
-                value = BigInt(Math.round(Number(log.value) * 1e18));
+                const numericValue = parseFloat(log.value);
+                // Vérifier si la valeur est très petite
+                if (numericValue < 0.000000001) {
+                    continue; // Ignorer cette valeur
+                }
+                value = BigInt(Math.round(numericValue * 1e18));
             } else if (typeof log.value === 'number') {
-                value = BigInt(Math.round(log.value * 1e18));
+                value = BigInt(Math.round(log.value * 33)); // Vous pouvez ajuster ici
             } else {
+                // Gérer d'autres types de valeurs si nécessaire
             }
 
             volume += value;
         }
     }
-    return `${volume}`;
+    
+    return volume.toString();
 }
 /*calculateVolume(logs: ParsedLog[]): string {
   let volume: bigint = BigInt(0);
