@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import "./chart.css";
+import { parseUnits } from "viem";
 
 
 // Register ChartJS components using ChartJS.register
@@ -27,7 +28,7 @@ const VolumeChart = ({ data }) => {
 
   useEffect(() => {
     const labels = data.map(item => item.timestamp).reverse();
-    const volumes = data.map(item => Number(item.volume)).reverse();
+    const volumes = data.map(item =>  parseUnits(item.volume, 18)).reverse();
     setLabels(labels)
     setDataAsset(volumes)
   }, [data]);
