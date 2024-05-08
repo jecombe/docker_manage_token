@@ -227,11 +227,12 @@ export class Contract extends Viem {
         console.log(value); // Assurez-vous que value est un nombre entier
 
         volume += value;
-      }
       console.log("FIN ", volume.toString(), volume, log.value);
 
+      }
+
     }
-console.log("RETURN", volume.toString());
+    console.log("RETURN", volume.toString());
 
 
 
