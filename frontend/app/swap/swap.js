@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import "./swap.css";
-import { getContractInfos, getReadFunctions, getWriteFunctions, waitingTransaction } from '@/utils/request';
+import { getContractInfos, getReadFunctions, getWriteFunctions, waitingTransaction, waitingTransactions } from '@/utils/request';
 import routerAbi from '@/utils/abi/router';
 import pairAbi from '@/utils/abi/pair';
 import { formatUnits, parseEther, parseUnits } from 'viem';
 import abi from '@/utils/abi';
+import { CircleLoader } from "react-spinners";
 
 const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [amountA, setAmountA] = useState(BigInt(0));
@@ -15,7 +16,10 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [pair, setPair] = useState(getContractInfos("0x277B37e50272f74f7Bc00a857C99dAe937378E3f", pairAbi))
   const [reserve, setReserve] = useState([]);
   const [afterSplippage, setAfterSplippage] = useState(0);
+  const [amtSplippage, setAmtSplippage] = useState(BigInt(0));
+
   const [isSwapDisabled, setIsSwapDisabled] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Ajout de l'état isLoading
 
   const [isArrowUp, setIsArrowUp] = useState(false);
 
@@ -23,6 +27,8 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     setIsArrowUp(!isArrowUp);
     setAmountA(amountB);
     setAmountB(amountA);
+    setAfterSplippage(amountA)
+    setSlippage(slippage)
 
     document.getElementById('BUSD').id = 'WBTC';
     document.getElementById('WBTC').id = 'BUSD';
@@ -59,6 +65,10 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     };
   }, [isArrowUp]);
 
+  useEffect(() => {
+    const isSufficientBalance = isArrowUp ? formatUnits(balanceWbtc, 8) >= amountB : formatUnits(balanceBusd, 18) >= amountABig
+    setIsSwapDisabled(isSufficientBalance);
+  }, [balanceBusd, balanceWbtc, amountA, amountB, isArrowUp, isSwapDisabled]);
 
   const getAmountOut = (amountIn, reserveIn, reserveOut) => {
     const amountInWithFee = amountIn * BigInt(997)
@@ -84,7 +94,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
 
   const calculeAmountOut = async (value, id, isSlippage) => {
-
+    console.log(slippage);
     if (id === 'BUSD') {
       let amountReceive = 0;
       const intValue = parseUnits(value.toString(), 18);
@@ -98,6 +108,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
         const slippageAmount = intValue * BigInt(slippage) / BigInt(100);
         const amt = intValue - slippageAmount;
         amountReceive = getAmountIn(amt, reserve[1], reserve[0]);
+        console.log("AMT: ", amt);
 
         if (!isSlippage) {
 
@@ -106,6 +117,8 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
         }
 
         setAfterSplippage(formatUnits(amt, 18))
+        setAmtSplippage(amt)
+
       }
       else {
 
@@ -123,7 +136,11 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
         const amountReceiveBigInt = BigInt(amountReceive);
         const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
         const amt = amountReceiveBigInt - slippageAmount;
+        console.log("AMT: ", amt);
+
+
         setAfterSplippage(formatUnits(amt, 8))
+        setAmtSplippage(amt)
 
       }
 
@@ -146,10 +163,13 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
           setAmountBBig(BigInt(amountReceive))
         }
 
-        const amountReceiveBigInt = BigInt(amountReceive);
+        const amountReceiveBigInt = amountBBig;
         const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
         const amt = amountReceiveBigInt - slippageAmount;
+
         setAfterSplippage(formatUnits(amt, 18))
+        setAmtSplippage(amt)
+
       }
       else {
         if (!isSlippage) {
@@ -166,7 +186,11 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
           setAmountA(formatUnits(res, 18));
           setAmountABig(BigInt(res))
         }
+        console.log("AMT: ", amt);
+
         setAfterSplippage(formatUnits(amt, 8))
+        setAmtSplippage(amt)
+
       }
 
     }
@@ -181,8 +205,10 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   const approveFunction = async (spenderAddress, contractAddress, amount) => {
     try {
+
       const hashApprove = await getWriteFunctions("approve", [spenderAddress, amount], addressUser, contractAddress, abi)
-      await waitingTransaction(hashApprove);
+     console.log("before approve", hashApprove);
+      await waitingTransactions(hashApprove, pair.publicClient);
       return hashApprove;
     } catch (error) {
       console.error(error)
@@ -191,38 +217,45 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   const handleSwap = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
     const deadline = Math.floor(Date.now() / 1000) + 60 * 3;
     try {
       if (isArrowUp) {
         console.log("swapExactTokensForTokens");
         const path = [process.env.WBTC, process.env.CONTRACT];
 
-        const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241", amountABig);
-        console.log("APPROVED", hashApprove);
-
-        const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
+        const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amtSplippage, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
         await waitingTransaction(hash);
         console.log("transaction successfully: ", hash);
       } else {
         console.log("swapExactTokensForTokens");
         const path = [process.env.CONTRACT, process.env.WBTC];
 
-        const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac", amountABig);
-        console.log("APPROVED", hashApprove);
 
-        const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amountBBig, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
+        const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amtSplippage, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
         await waitingTransaction(hash);
         console.log("transaction successfully: ", hash);
+        setIsLoading(false);
+
       }
 
     } catch (error) {
       console.error("Error:", error);
+      setIsLoading(false)
+
     }
 
   };
 
+
+
   const handleSlippageChange = (e) => {
-    setSlippage(e.target.value);
+    //setSlippage(e.target.value);
+
+    const newSlippage = parseInt(e.target.value, 10);
+    setSlippage(newSlippage);
+
     calculeAmountOut(amountA, 'BUSD', true);
     calculeAmountOut(amountB, 'WBTC', true);
   };
@@ -237,21 +270,45 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     }
   }
 
-
   useEffect(() => {
-    setIsSwapDisabled(true)
-  }, [balanceBusd, balanceWbtc]);
+    console.log(amountA, amountB, reserve);
+    // Appeler calculeAmountOut lorsque la valeur de slippage change
+    if (!_.isEmpty(reserve)) {
+      calculeAmountOut(amountA, 'BUSD', true);
+      calculeAmountOut(amountB, 'WBTC', true);
+    }
+  }, [slippage]);
+
 
 
   const printBalance = (balance, decimal) => {
     return parseFloat(formatUnits(balance.toString(), decimal)).toFixed(3)
   }
 
+  const handleApprove = async () => {
+    try {
+      setIsLoading(true)
+
+      if (isArrowUp) {
+        const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0xFa1e53C68c045589cb5BaC4B311337c9f42e2241", amountABig);
+        console.log("APPROVE : ", hashApprove);
+        setIsLoading(false)
+      } else {
+        const hashApprove = await approveFunction("0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", "0x6A7577c10cD3F595eB2dbB71331D7Bf7223E1Aac", amountABig);
+        console.log("APPROVE : ", hashApprove);
+        setIsLoading(false)
+      }
+
+    } catch (error) {
+      console.error("Error:", error);
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="form-container">
       <h3>Swap Tokens</h3>
-      <form onSubmit={handleSwap}>
+      <form onSubmit={(e) => e.preventDefault()}> {/* Empêcher la soumission du formulaire */}
         <div className="form-group">
           <label htmlFor="BUSD">{isArrowUp ? 'WBTC' : 'BUSD'}</label>
           <div className="input-container">
@@ -269,11 +326,11 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
             </div>
           </div>
         </div>
-
+  
         <div className="invert-container">
           <div className={`invert-icon ${isArrowUp ? 'up' : ''}`} onClick={handleInvert}></div>
         </div>
-
+  
         <div className="form-group">
           <label htmlFor="WBTC">{isArrowUp ? 'BUSD' : 'WBTC'}</label>
           <input
@@ -286,7 +343,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
           />
           <div>You receive: {afterSplippage}</div>
         </div>
-
+  
         <div className="form-group">
           <label htmlFor="slippage">Slippage ({slippage}%)</label>
           <div className="slider-container">
@@ -303,13 +360,31 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
             <span className="slider-label">100%</span>
           </div>
         </div>
-
-        <div className="form-group" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button type="submit" disabled={false}>Swap Tokens</button>
+        <div className="form-group" style={{ display: 'flex', justifyContent: 'center' }}>
+          {isLoading ? (
+            <CircleLoader color={"#36D7B7"} loading={isLoading} />
+          ) : (
+            <>
+              <button type="button" disabled={isSwapDisabled} onClick={handleApprove} style={{
+                opacity: isSwapDisabled ? '0.5' : '1',
+                cursor: isSwapDisabled ? 'not-allowed' : 'pointer',
+                marginRight: '10px' // Ajout de la marge à droite pour espacement
+              }}>
+                Approve
+              </button>
+              <button type="submit" disabled={isSwapDisabled} onClick={handleSwap} style={{
+                opacity: isSwapDisabled ? '0.5' : '1',
+                cursor: isSwapDisabled ? 'not-allowed' : 'pointer'
+              }}>
+                Swap Tokens
+              </button>
+            </>
+          )}
         </div>
       </form>
     </div>
   );
+  
 };
 
 export default Swap;

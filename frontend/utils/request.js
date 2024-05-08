@@ -7,7 +7,7 @@ import {
   getContract,
   parseAbi,
 } from "viem";
-import {  sepolia } from "viem/chains";
+import { sepolia } from "viem/chains";
 import { isAddressEqual } from "viem";
 import _ from "lodash";
 import { event, parseResult } from "./utils";
@@ -44,7 +44,7 @@ export const getReadFunction = async (functionName, args) => {
 
 
 
-export const getReadFunctions = async (functionName, args,  address, abiC) => {
+export const getReadFunctions = async (functionName, args, address, abiC) => {
   return ConnectPublicClient().readContract({
     address,
     abi: abiC,
@@ -63,12 +63,9 @@ export const getContractInfo = () => {
 };
 
 export const getContractInfos = (address, abiC) => {
-  return getContract({
-    address,
-    abi: abiC,
-    publicClient: ConnectPublicClient(),
-    walletClient: ConnectWalletClient(),
-  });
+  return {
+    publicClient: ConnectPublicClient()
+  }
 };
 
 export const createWallet = () => {
@@ -84,6 +81,12 @@ export const getBalanceUser = (address) => {
 
 export const waitingTransaction = (hash) => {
   return ConnectPublicClient().waitForTransactionReceipt({
+    hash,
+  });
+};
+
+export const waitingTransactions = (hash, publicClient) => {
+  return publicClient.waitForTransactionReceipt({
     hash,
   });
 };
