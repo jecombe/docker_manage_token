@@ -19,9 +19,10 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const [amtSplippage, setAmtSplippage] = useState(BigInt(0));
 
   const [isSwapDisabled, setIsSwapDisabled] = useState(true);
-  const [isLoading, setIsLoading] = useState(false); // Ajout de l'état isLoading
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isArrowUp, setIsArrowUp] = useState(false);
+  const [actualToken, setActualToken] = useState(null)
 
   const handleInvert = () => {
     setIsArrowUp(!isArrowUp);
@@ -29,6 +30,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     setAmountB(amountA);
     setAfterSplippage(amountA)
     setSlippage(slippage)
+
 
     document.getElementById('BUSD').id = 'WBTC';
     document.getElementById('WBTC').id = 'BUSD';
@@ -86,42 +88,96 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   }
 
 
-  const getAmtAfterSlippage = (slippage, amount) => {
+  /*const getAmtAfterSlippage = (slippage, amount) => {
     const amountReceiveBigInt = BigInt(amount);
     const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
     return amountReceiveBigInt - slippageAmount;
+  }*/
+
+
+
+  const getAmtAfterSlippage = (amount) => {
+    const slippageAmount = amount * BigInt(slippage) / BigInt(100);
+    return amount - slippageAmount;
+  }
+
+  /*const calculeAmount = async (intValue, isOut, reserve1, reserve2) => {
+    try {
+      let amountReceive = BigInt(0);
+      console.log(intValue, isOut, reserve1, reserve2);
+      const amountSplippage = getAmtAfterSlippage(intValue)
+      if (isOut) {
+        amountReceive = getAmountOut(amountSplippage, reserve1, reserve2)
+      } else {
+        amountReceive = getAmountIn(amountSplippage, reserve1, reserve2);
+
+      }
+      return { amountReceive, amountSplippage };
+    } catch (error) {
+      console.error(error);
+    }
+  }*/
+
+  const manageIn = (value, isSlippage, intValue, reserve1, reserve2, decimal1, decimal2) => {
+    if (!isSlippage) {
+      setAmountB(value)
+      setAmountBBig(intValue)
+    }
+    const amt = getAmtAfterSlippage(intValue)
+
+    const amountReceive = getAmountIn(amt, reserve1, reserve2);
+    if (!isSlippage) {
+
+      setAmountA(formatUnits(amountReceive, decimal1));
+      setAmountABig(BigInt(amountReceive))
+    }
+    setAfterSplippage(formatUnits(amt, decimal2))
+    setAmtSplippage(amt)
+  }
+
+  const manageOut = (value, isSlippage, intValue, reserve1, reserve2, decimal1, decimal2) => {
+    if (!isSlippage) {
+      setAmountA(value)
+      setAmountABig(intValue)
+    }
+    const amountReceive = getAmountOut(intValue, reserve1, reserve2)
+    const bigReceive = BigInt(amountReceive)
+
+
+    if (!isSlippage) {
+      setAmountB(formatUnits(amountReceive, decimal1));
+      setAmountBBig(bigReceive)
+    }
+    const amt = getAmtAfterSlippage(bigReceive)
+
+    setAfterSplippage(formatUnits(amt, decimal2))
+    setAmtSplippage(amt)
   }
 
 
   const calculeAmountOut = async (value, id, isSlippage) => {
-    console.log(slippage);
     if (id === 'BUSD') {
-      let amountReceive = 0;
       const intValue = parseUnits(value.toString(), 18);
-      console.log(isArrowUp);
       if (isArrowUp) {
-        if (!isSlippage) {
+        manageIn(value, isSlippage, intValue, reserve[1], reserve[0], 8, 18);
+        /*  if (!isSlippage) {
+            setAmountB(value)
+            setAmountBBig(intValue)
+          }*/
+        /*const amt = getAmtAfterSlippage(intValue)
 
-          setAmountB(value)
-          setAmountBBig(intValue)
-        }
-        const slippageAmount = intValue * BigInt(slippage) / BigInt(100);
-        const amt = intValue - slippageAmount;
         amountReceive = getAmountIn(amt, reserve[1], reserve[0]);
-        console.log("AMT: ", amt);
-
         if (!isSlippage) {
 
           setAmountA(formatUnits(amountReceive, 8));
           setAmountABig(BigInt(amountReceive))
         }
-
         setAfterSplippage(formatUnits(amt, 18))
-        setAmtSplippage(amt)
-
+        setAmtSplippage(amt)*/
       }
       else {
-
+        manageOut(value, isSlippage, intValue, reserve[0], reserve[1], 8, 8);
+/*
         if (!isSlippage) {
           setAmountA(value)
           setAmountABig(intValue)
@@ -132,27 +188,20 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
           setAmountB(formatUnits(amountReceive, 8));
           setAmountBBig(BigInt(amountReceive))
         }
-
-        const amountReceiveBigInt = BigInt(amountReceive);
-        const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
-        const amt = amountReceiveBigInt - slippageAmount;
-        console.log("AMT: ", amt);
-
+        const amt = getAmtAfterSlippage(BigInt(amountReceive))
 
         setAfterSplippage(formatUnits(amt, 8))
-        setAmtSplippage(amt)
-
+        setAmtSplippage(amt)*/
       }
-
-
     }
     if (id === 'WBTC') {
       const intValue = parseUnits(value.toString(), 8);
-
-      let amountReceive = 0;
+      manageOut
 
       if (isArrowUp) {
-        if (!isSlippage) {
+         manageOut(value, isSlippage, intValue, reserve[1], reserve[0], 18, 18);
+
+        /*if (!isSlippage) {
           setAmountA(value)
           setAmountABig(intValue)
         }
@@ -162,34 +211,30 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
           setAmountB(formatUnits(amountReceive, 18));
           setAmountBBig(BigInt(amountReceive))
         }
-
-        const amountReceiveBigInt = amountBBig;
-        const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
-        const amt = amountReceiveBigInt - slippageAmount;
+        const amt = getAmtAfterSlippage(amountBBig)
 
         setAfterSplippage(formatUnits(amt, 18))
-        setAmtSplippage(amt)
+        setAmtSplippage(amt)*/
 
       }
       else {
-        if (!isSlippage) {
+        manageIn(value, isSlippage, intValue, reserve[0], reserve[1], 18, 8);
+
+        /*if (!isSlippage) {
 
           setAmountB(value)
           setAmountBBig(intValue)
         }
-        const slippageAmount = intValue * BigInt(slippage) / BigInt(100);
-        const amt = intValue - slippageAmount;
 
+        const amt = getAmtAfterSlippage(intValue)
         const res = getAmountIn(amt, reserve[0], reserve[1])
         if (!isSlippage) {
 
           setAmountA(formatUnits(res, 18));
           setAmountABig(BigInt(res))
         }
-        console.log("AMT: ", amt);
-
         setAfterSplippage(formatUnits(amt, 8))
-        setAmtSplippage(amt)
+        setAmtSplippage(amt)*/
 
       }
 
@@ -199,15 +244,12 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   const handleAmountChange = async (e) => {
     const { id, value } = e.target;
-
     calculeAmountOut(value, id, false)
   };
 
   const approveFunction = async (spenderAddress, contractAddress, amount) => {
     try {
-
       const hashApprove = await getWriteFunctions("approve", [spenderAddress, amount], addressUser, contractAddress, abi)
-     console.log("before approve", hashApprove);
       await waitingTransactions(hashApprove, pair.publicClient);
       return hashApprove;
     } catch (error) {
@@ -215,37 +257,48 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     }
   }
 
+  const sendSwap = async (amount1, amount2, path, func) => {
+    try {
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 3;
+
+      const hash = await getWriteFunctions(func, [amount1, amount2, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
+      await waitingTransaction(hash);
+      console.log(hash);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const handleSwap = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    const pathWbtcUsd = [process.env.WBTC, process.env.CONTRACT];
+    const pathUsdWbtc = [process.env.CONTRACT, process.env.WBTC];
 
-    const deadline = Math.floor(Date.now() / 1000) + 60 * 3;
     try {
       if (isArrowUp) {
-        console.log("swapExactTokensForTokens");
-        const path = [process.env.WBTC, process.env.CONTRACT];
-
-        const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amtSplippage, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
-        await waitingTransaction(hash);
-        console.log("transaction successfully: ", hash);
+        if (actualToken === "WBTC") {
+          console.log("swapTokensForExactTokens");
+          await sendSwap(amountBBig, amountABig, pathWbtcUsd, "swapTokensForExactTokens")
+        } else {
+          console.log("swapExactTokensForTokens");
+          await sendSwap(amountABig, amtSplippage, pathWbtcUsd, "swapExactTokensForTokens")
+        }
       } else {
-        console.log("swapExactTokensForTokens");
-        const path = [process.env.CONTRACT, process.env.WBTC];
+        if (actualToken === "WBTC") {
+          console.log("swapTokensForExactTokens");
+          await sendSwap(amountBBig, amountABig, pathUsdWbtc, "swapTokensForExactTokens")
 
-
-        const hash = await getWriteFunctions("swapExactTokensForTokens", [amountABig, amtSplippage, path, addressUser, deadline], addressUser, "0x13603a16785B335dC63Edb4d4b1EA5A24E10ECc9", routerAbi);
-        await waitingTransaction(hash);
-        console.log("transaction successfully: ", hash);
-        setIsLoading(false);
-
+        } else {
+          console.log("swapExactTokensForTokens");
+          await sendSwap(amountABig, amtSplippage, pathUsdWbtc, "swapExactTokensForTokens")
+        }
       }
-
+      setIsLoading(false);
     } catch (error) {
       console.error("Error:", error);
       setIsLoading(false)
-
     }
-
   };
 
 
@@ -308,13 +361,14 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   return (
     <div className="form-container">
       <h3>Swap Tokens</h3>
-      <form onSubmit={(e) => e.preventDefault()}> {/* Empêcher la soumission du formulaire */}
+      <form onSubmit={(e) => e.preventDefault()}>
         <div className="form-group">
           <label htmlFor="BUSD">{isArrowUp ? 'WBTC' : 'BUSD'}</label>
           <div className="input-container">
             <input
               type="text"
               id="BUSD"
+              onClick={() => setActualToken('BUSD')}
               value={amountA.toString()}
               onChange={handleAmountChange}
               inputMode="decimal"
@@ -326,11 +380,11 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
             </div>
           </div>
         </div>
-  
+
         <div className="invert-container">
           <div className={`invert-icon ${isArrowUp ? 'up' : ''}`} onClick={handleInvert}></div>
         </div>
-  
+
         <div className="form-group">
           <label htmlFor="WBTC">{isArrowUp ? 'BUSD' : 'WBTC'}</label>
           <input
@@ -338,12 +392,13 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
             id="WBTC"
             value={amountB.toString()}
             onChange={handleAmountChange}
+            onClick={() => setActualToken('WBTC')}
             inputMode="decimal"
             pattern="[0-9]*[.,]?[0-9]*"
           />
           <div>You receive: {afterSplippage}</div>
         </div>
-  
+
         <div className="form-group">
           <label htmlFor="slippage">Slippage ({slippage}%)</label>
           <div className="slider-container">
@@ -384,7 +439,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
       </form>
     </div>
   );
-  
+
 };
 
 export default Swap;

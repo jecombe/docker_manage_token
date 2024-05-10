@@ -4,7 +4,6 @@ import "./information.css";
 import { CircleLoader } from "react-spinners";
 import { deleteBdd, fetchAllLogs, fetchAllLogsFromAddr, fetchAllowancesFromAddr, fetchTranferFromAddr, fetchVolumesDaily } from "@/utils/server";
 import VolumeChart from "../chart/chart";
-import { parseUnits } from "viem";
 
 export default function Information({ userAddress, isConnect, socket }) {
   const [loadingAll, setLoadingAll] = useState(true)
@@ -64,6 +63,7 @@ export default function Information({ userAddress, isConnect, socket }) {
       if (index !== -1) {
         return prevLogs.map((log, i) => {
           if (i === index) {
+            
             const updatedVolume = String(Number(log.volume) + Number(logsVolume.volume));
             return { ...log, volume: updatedVolume };
           } else {
@@ -95,7 +95,7 @@ export default function Information({ userAddress, isConnect, socket }) {
       });
 
       socket.on("volume", (data) => {
-        console.log("Received Volume:", parseUnits(data.volume, 18));
+        console.log("Received Volume:", data);
         dispatchVolume(data)
       });
 
