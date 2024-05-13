@@ -3,7 +3,7 @@ import "./swap.css";
 import { getContractInfos, getReadFunctions, getWriteFunctions, waitingTransaction, waitingTransactions } from '@/utils/request';
 import routerAbi from '@/utils/abi/router';
 import pairAbi from '@/utils/abi/pair';
-import { formatUnits, parseUnits } from 'viem';
+import { formatUnits, parseEther, parseUnits } from 'viem';
 import abi from '@/utils/abi';
 import { CircleLoader } from "react-spinners";
 
@@ -204,13 +204,13 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     try {
       if (isArrowUp) {
         if (actualToken === "WBTC") {
-          await sendSwap(amountBBig, amountABig, pathWbtcUsd, "swapTokensForExactTokens")
+          await sendSwap(amtSplippage, amountABig, pathWbtcUsd, "swapTokensForExactTokens")
         } else {
           await sendSwap(amountABig, amtSplippage, pathWbtcUsd, "swapExactTokensForTokens")
         }
       } else {
         if (actualToken === "WBTC") {
-          await sendSwap(amountBBig, amountABig, pathUsdWbtc, "swapTokensForExactTokens")
+          await sendSwap(amtSplippage, amountABig, pathUsdWbtc, "swapTokensForExactTokens")
         } else {
           await sendSwap(amountABig, amtSplippage, pathUsdWbtc, "swapExactTokensForTokens")
         }
