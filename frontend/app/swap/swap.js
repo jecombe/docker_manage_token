@@ -23,7 +23,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   const [isArrowUp, setIsArrowUp] = useState(false);
   const [actualToken, setActualToken] = useState(null)
-  const [actualFunc, setActualFunc] = useState(null)
+  const [actualFunc, setActualFunc] = useState("swapExactTokensForTokens")
 
   const handleInvert = () => {
     setIsArrowUp(!isArrowUp);
@@ -200,16 +200,16 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     }
   }
 
-  const whatFuncSwap = () => {
+  const whatFuncSwap = (token) => {
     if (isArrowUp) {
-      if (actualToken === "WBTC") {
+      if (token === "WBTC") {
         return "swapTokensForExactTokens"
       } else {
         return "swapExactTokensForTokens"
       }
     
     } else {
-      if (actualToken === "WBTC") {
+      if (token === "WBTC") {
         return "swapTokensForExactTokens"
       } else {
         return "swapExactTokensForTokens"
@@ -322,7 +322,8 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   const setTokenAndFunc = (token) => {
     setActualToken(token)
-    setActualFunc(whatFuncSwap());
+    console.log(token);
+    setActualFunc(whatFuncSwap(token));
   }
 
   return (
