@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, act } from 'react';
 import "./swap.css";
 import { getContractInfos, getReadFunctions, getWriteFunctions, waitingTransaction, waitingTransactions } from '@/utils/request';
 import routerAbi from '@/utils/abi/router';
 import pairAbi from '@/utils/abi/pair';
-import { formatUnits, parseEther, parseUnits } from 'viem';
+import { formatUnits, parseUnits } from 'viem';
 import abi from '@/utils/abi';
 import { CircleLoader } from "react-spinners";
 
@@ -48,6 +48,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
     getReserves();
   }, [pair]);
+
   useEffect(() => {
     const invertInputIds = () => {
       const busdInput = document.getElementById('BUSD');
@@ -87,36 +88,10 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     return amountOut.toString();
   }
 
-
-  /*const getAmtAfterSlippage = (slippage, amount) => {
-    const amountReceiveBigInt = BigInt(amount);
-    const slippageAmount = amountReceiveBigInt * BigInt(slippage) / BigInt(100);
-    return amountReceiveBigInt - slippageAmount;
-  }*/
-
-
-
   const getAmtAfterSlippage = (amount) => {
     const slippageAmount = amount * BigInt(slippage) / BigInt(100);
     return amount - slippageAmount;
   }
-
-  /*const calculeAmount = async (intValue, isOut, reserve1, reserve2) => {
-    try {
-      let amountReceive = BigInt(0);
-      console.log(intValue, isOut, reserve1, reserve2);
-      const amountSplippage = getAmtAfterSlippage(intValue)
-      if (isOut) {
-        amountReceive = getAmountOut(amountSplippage, reserve1, reserve2)
-      } else {
-        amountReceive = getAmountIn(amountSplippage, reserve1, reserve2);
-
-      }
-      return { amountReceive, amountSplippage };
-    } catch (error) {
-      console.error(error);
-    }
-  }*/
 
   const manageIn = (value, isSlippage, intValue, reserve1, reserve2, decimal1, decimal2) => {
     if (!isSlippage) {
@@ -127,13 +102,31 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
     const amountReceive = getAmountIn(amt, reserve1, reserve2);
     if (!isSlippage) {
-
       setAmountA(formatUnits(amountReceive, decimal1));
       setAmountABig(BigInt(amountReceive))
     }
     setAfterSplippage(formatUnits(amt, decimal2))
     setAmtSplippage(amt)
   }
+
+
+  const manageInn = (value, isSlippage, intValue, reserve1, reserve2, decimal1, decimal2) => {
+    if (!isSlippage) {
+      setAmountB(value)
+      setAmountBBig(intValue)
+    }
+
+    const amt = getAmtAfterSlippage(intValue)
+
+    const amountReceive = getAmountIn(amt, reserve1, reserve2);
+    if (!isSlippage) {
+      setAmountA(formatUnits(amountReceive, decimal1));
+      setAmountABig(BigInt(amountReceive))
+    }
+    setAfterSplippage(formatUnits(amt, decimal2))
+    setAmtSplippage(amt)
+  }
+
 
   const manageOut = (value, isSlippage, intValue, reserve1, reserve2, decimal1, decimal2) => {
     if (!isSlippage) {
@@ -142,7 +135,6 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     }
     const amountReceive = getAmountOut(intValue, reserve1, reserve2)
     const bigReceive = BigInt(amountReceive)
-
 
     if (!isSlippage) {
       setAmountB(formatUnits(amountReceive, decimal1));
@@ -154,92 +146,26 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     setAmtSplippage(amt)
   }
 
-
-  const calculeAmountOut = async (value, id, isSlippage) => {
+  const calculeAmountOut = async (value, id, isSlippage, id2) => {
     if (id === 'BUSD') {
       const intValue = parseUnits(value.toString(), 18);
       if (isArrowUp) {
         manageIn(value, isSlippage, intValue, reserve[1], reserve[0], 8, 18);
-        /*  if (!isSlippage) {
-            setAmountB(value)
-            setAmountBBig(intValue)
-          }*/
-        /*const amt = getAmtAfterSlippage(intValue)
-
-        amountReceive = getAmountIn(amt, reserve[1], reserve[0]);
-        if (!isSlippage) {
-
-          setAmountA(formatUnits(amountReceive, 8));
-          setAmountABig(BigInt(amountReceive))
-        }
-        setAfterSplippage(formatUnits(amt, 18))
-        setAmtSplippage(amt)*/
       }
       else {
         manageOut(value, isSlippage, intValue, reserve[0], reserve[1], 8, 8);
-/*
-        if (!isSlippage) {
-          setAmountA(value)
-          setAmountABig(intValue)
-        }
-        amountReceive = getAmountOut(intValue, reserve[0], reserve[1])
-
-        if (!isSlippage) {
-          setAmountB(formatUnits(amountReceive, 8));
-          setAmountBBig(BigInt(amountReceive))
-        }
-        const amt = getAmtAfterSlippage(BigInt(amountReceive))
-
-        setAfterSplippage(formatUnits(amt, 8))
-        setAmtSplippage(amt)*/
       }
     }
     if (id === 'WBTC') {
       const intValue = parseUnits(value.toString(), 8);
-      manageOut
 
       if (isArrowUp) {
-         manageOut(value, isSlippage, intValue, reserve[1], reserve[0], 18, 18);
-
-        /*if (!isSlippage) {
-          setAmountA(value)
-          setAmountABig(intValue)
-        }
-        amountReceive = getAmountOut(intValue, reserve[1], reserve[0])
-
-        if (!isSlippage) {
-          setAmountB(formatUnits(amountReceive, 18));
-          setAmountBBig(BigInt(amountReceive))
-        }
-        const amt = getAmtAfterSlippage(amountBBig)
-
-        setAfterSplippage(formatUnits(amt, 18))
-        setAmtSplippage(amt)*/
-
+        manageOut(value, isSlippage, intValue, reserve[1], reserve[0], 18, 18);
       }
       else {
-        manageIn(value, isSlippage, intValue, reserve[0], reserve[1], 18, 8);
-
-        /*if (!isSlippage) {
-
-          setAmountB(value)
-          setAmountBBig(intValue)
-        }
-
-        const amt = getAmtAfterSlippage(intValue)
-        const res = getAmountIn(amt, reserve[0], reserve[1])
-        if (!isSlippage) {
-
-          setAmountA(formatUnits(res, 18));
-          setAmountABig(BigInt(res))
-        }
-        setAfterSplippage(formatUnits(amt, 8))
-        setAmtSplippage(amt)*/
-
+        manageInn(value, isSlippage, intValue, reserve[0], reserve[1], 18, 8);
       }
-
     }
-
   }
 
   const handleAmountChange = async (e) => {
@@ -278,19 +204,14 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     try {
       if (isArrowUp) {
         if (actualToken === "WBTC") {
-          console.log("swapTokensForExactTokens");
           await sendSwap(amountBBig, amountABig, pathWbtcUsd, "swapTokensForExactTokens")
         } else {
-          console.log("swapExactTokensForTokens");
           await sendSwap(amountABig, amtSplippage, pathWbtcUsd, "swapExactTokensForTokens")
         }
       } else {
         if (actualToken === "WBTC") {
-          console.log("swapTokensForExactTokens");
           await sendSwap(amountBBig, amountABig, pathUsdWbtc, "swapTokensForExactTokens")
-
         } else {
-          console.log("swapExactTokensForTokens");
           await sendSwap(amountABig, amtSplippage, pathUsdWbtc, "swapExactTokensForTokens")
         }
       }
@@ -301,20 +222,21 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     }
   };
 
-
-
   const handleSlippageChange = (e) => {
-    //setSlippage(e.target.value);
-
     const newSlippage = parseInt(e.target.value, 10);
     setSlippage(newSlippage);
+    let token = actualToken;
+    if (actualToken === "BUSD") {
+      const amount = isArrowUp ? amountB : amountA;
+      calculeAmountOut(amount, token, true);
 
-    calculeAmountOut(amountA, 'BUSD', true);
-    calculeAmountOut(amountB, 'WBTC', true);
+    } else {
+      const amount = !isArrowUp ? amountB : amountA;
+      calculeAmountOut(amount, token, true);
+    }
   };
 
   const handleMaxClick = (token) => {
-
     if (token === "BUSD") {
       calculeAmountOut(formatUnits(balanceBusd.toString(), 18), token, false);
     }
@@ -324,15 +246,18 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   }
 
   useEffect(() => {
-    console.log(amountA, amountB, reserve);
-    // Appeler calculeAmountOut lorsque la valeur de slippage change
     if (!_.isEmpty(reserve)) {
-      calculeAmountOut(amountA, 'BUSD', true);
-      calculeAmountOut(amountB, 'WBTC', true);
+      if (actualToken === "BUSD") {
+        const amount = isArrowUp ? amountB : amountA;
+        calculeAmountOut(amount, actualToken, true);
+
+      } else {
+        const amount = !isArrowUp ? amountB : amountA;
+        calculeAmountOut(amount, actualToken, true);
+      }
+
     }
   }, [slippage]);
-
-
 
   const printBalance = (balance, decimal) => {
     return parseFloat(formatUnits(balance.toString(), decimal)).toFixed(3)
