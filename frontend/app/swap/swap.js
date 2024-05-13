@@ -112,9 +112,11 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   const manageInn = (value, isSlippage, intValue, reserve1, reserve2, decimal1, decimal2) => {
     if (!isSlippage) {
+      console.log(value);
       setAmountB(value)
       setAmountBBig(intValue)
     }
+    console.log(value);
 
     const amt = getAmtAfterSlippage(intValue)
 
@@ -123,6 +125,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
       setAmountA(formatUnits(amountReceive, decimal1));
       setAmountABig(BigInt(amountReceive))
     }
+    console.log(formatUnits(amt, decimal2));
     setAfterSplippage(formatUnits(amt, decimal2))
     setAmtSplippage(amt)
   }
@@ -134,6 +137,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
       setAmountABig(intValue)
     }
     const amountReceive = getAmountOut(intValue, reserve1, reserve2)
+    console.log("RECEIVE: ", amountReceive);
     const bigReceive = BigInt(amountReceive)
 
     if (!isSlippage) {
@@ -148,21 +152,28 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   const calculeAmountOut = async (value, id, isSlippage, id2) => {
     if (id === 'BUSD') {
+      console.log("BUSD");
+
       const intValue = parseUnits(value.toString(), 18);
       if (isArrowUp) {
+        console.log("IN VALUE: ", value, intValue);
         manageIn(value, isSlippage, intValue, reserve[1], reserve[0], 8, 18);
       }
       else {
+        console.log("::::::::::", value);
         manageOut(value, isSlippage, intValue, reserve[0], reserve[1], 8, 8);
       }
     }
     if (id === 'WBTC') {
+      console.log("WBTC");
       const intValue = parseUnits(value.toString(), 8);
 
       if (isArrowUp) {
         manageOut(value, isSlippage, intValue, reserve[1], reserve[0], 18, 18);
       }
       else {
+        console.log("::::::::::9999999999", value);
+
         manageInn(value, isSlippage, intValue, reserve[0], reserve[1], 18, 8);
       }
     }
@@ -170,6 +181,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   const handleAmountChange = async (e) => {
     const { id, value } = e.target;
+    console.log("HANDLE CHANGE");
     calculeAmountOut(value, id, false)
   };
 
@@ -204,6 +216,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     try {
       if (isArrowUp) {
         if (actualToken === "WBTC") {
+          console.log(amtSplippage, amountA, amountB);
           await sendSwap(amtSplippage, amountABig, pathWbtcUsd, "swapTokensForExactTokens")
         } else {
           await sendSwap(amountABig, amtSplippage, pathWbtcUsd, "swapExactTokensForTokens")
@@ -212,7 +225,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
         if (actualToken === "WBTC") {
           await sendSwap(amtSplippage, amountABig, pathUsdWbtc, "swapTokensForExactTokens")
         } else {
-          await sendSwap(amountABig, amtSplippage, pathUsdWbtc, "swapExactTokensForTokens")
+          await sendSwap(amtSplippage, amountABig, pathUsdWbtc, "swapExactTokensForTokens")
         }
       }
       setIsLoading(false);
@@ -225,14 +238,14 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
   const handleSlippageChange = (e) => {
     const newSlippage = parseInt(e.target.value, 10);
     setSlippage(newSlippage);
-    let token = actualToken;
+
     if (actualToken === "BUSD") {
       const amount = isArrowUp ? amountB : amountA;
-      calculeAmountOut(amount, token, true);
+      calculeAmountOut(amount, actualToken, true);
 
     } else {
       const amount = !isArrowUp ? amountB : amountA;
-      calculeAmountOut(amount, token, true);
+      calculeAmountOut(amount, actualToken, true);
     }
   };
 
@@ -247,6 +260,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   useEffect(() => {
     if (!_.isEmpty(reserve)) {
+
       if (actualToken === "BUSD") {
         const amount = isArrowUp ? amountB : amountA;
         calculeAmountOut(amount, actualToken, true);
@@ -348,7 +362,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
               <button type="button" disabled={isSwapDisabled} onClick={handleApprove} style={{
                 opacity: isSwapDisabled ? '0.5' : '1',
                 cursor: isSwapDisabled ? 'not-allowed' : 'pointer',
-                marginRight: '10px' // Ajout de la marge à droite pour espacement
+                marginRight: '10px'
               }}>
                 Approve
               </button>
