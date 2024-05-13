@@ -23,6 +23,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   const [isArrowUp, setIsArrowUp] = useState(false);
   const [actualToken, setActualToken] = useState(null)
+  const [actualFunc, setActualFunc] = useState(null)
 
   const handleInvert = () => {
     setIsArrowUp(!isArrowUp);
@@ -199,6 +200,24 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     }
   }
 
+  const whatFuncSwap = () => {
+    if (isArrowUp) {
+      if (actualToken === "WBTC") {
+        return "swapTokensForExactTokens"
+      } else {
+        return "swapExactTokensForTokens"
+      }
+    
+    } else {
+      if (actualToken === "WBTC") {
+        return "swapTokensForExactTokens"
+      } else {
+        return "swapExactTokensForTokens"
+      }
+
+    }
+  }
+
   const handleSwap = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -208,24 +227,24 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     try {
       if (isArrowUp) {
         if (actualToken === "WBTC") {
-        //  await sendSwap(amtSplippage, amountABig, pathWbtcUsd, "swapTokensForExactTokens")
-          await sendSwap(amtSplippage, amountABig, pathWbtcUsd, "swapExactTokensForTokens")
-
+          console.log("PIPIPIPIPIPIP");
+            await sendSwap(amtSplippage, amountABig, pathWbtcUsd, "swapTokensForExactTokens")
+         // await sendSwap(amtSplippage, amountABig, pathWbtcUsd, "swapExactTokensForTokens")
         } else {
-             await sendSwap(amountABig, amtSplippage, pathWbtcUsd, "swapTokensForExactTokens")
-
-         // await sendSwap(amountABig, amtSplippage, pathWbtcUsd, "swapExactTokensForTokens")
+        //  await sendSwap(amountABig, amtSplippage, pathWbtcUsd, "swapTokensForExactTokens")
+          await sendSwap(amountABig, amtSplippage, pathWbtcUsd, "swapExactTokensForTokens")
         }
       } else {
         if (actualToken === "WBTC") {
 
-          await sendSwap(amountABig, amtSplippage, pathUsdWbtc, "swapExactTokensForTokens")
+       //   await sendSwap(amountABig, amtSplippage, pathUsdWbtc, "swapExactTokensForTokens")
 
-         // await sendSwap(amtSplippage, amountABig, pathUsdWbtc, "swapTokensForExactTokens")
+          await sendSwap(amtSplippage, amountABig, pathUsdWbtc, "swapTokensForExactTokens")
         } else {
-           await sendSwap(amtSplippage, amountABig, pathUsdWbtc, "swapTokensForExactTokens")
+          console.log(amountA, amountB);
+          //await sendSwap(amtSplippage, amountABig, pathWbtcUsd, "swapTokensForExactTokens")
 
-         // await sendSwap(amountABig, amtSplippage, pathUsdWbtc, "swapExactTokensForTokens")
+           await sendSwap(amountABig, amtSplippage, pathUsdWbtc, "swapExactTokensForTokens")
         }
       }
       setIsLoading(false);
@@ -267,16 +286,13 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
 
   useEffect(() => {
     if (!_.isEmpty(reserve)) {
-
       if (actualToken === "BUSD") {
         const amount = isArrowUp ? amountB : amountA;
         calculeAmountOut(amount, actualToken, true);
-
       } else {
         const amount = !isArrowUp ? amountB : amountA;
         calculeAmountOut(amount, actualToken, true);
       }
-
     }
   }, [slippage]);
 
@@ -304,9 +320,15 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     }
   }
 
+  const setTokenAndFunc = (token) => {
+    setActualToken(token)
+    setActualFunc(whatFuncSwap());
+  }
+
   return (
     <div className="form-container">
       <h3>Swap Tokens</h3>
+      <p>function swap: {actualFunc}</p>
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="form-group">
           <label htmlFor="BUSD">{isArrowUp ? 'WBTC' : 'BUSD'}</label>
@@ -314,7 +336,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
             <input
               type="text"
               id="BUSD"
-              onClick={() => setActualToken('BUSD')}
+              onClick={() => setTokenAndFunc('BUSD')}
               value={amountA.toString()}
               onChange={handleAmountChange}
               inputMode="decimal"
@@ -338,7 +360,7 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
             id="WBTC"
             value={amountB.toString()}
             onChange={handleAmountChange}
-            onClick={() => setActualToken('WBTC')}
+            onClick={() => setTokenAndFunc('WBTC')}
             inputMode="decimal"
             pattern="[0-9]*[.,]?[0-9]*"
           />
