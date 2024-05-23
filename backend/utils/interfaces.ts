@@ -1,3 +1,4 @@
+import { Socket } from "socket.io";
 
 export interface LogEntry {
     args: {
@@ -12,7 +13,7 @@ export interface LogEntry {
     blockNumber: bigint;
     transactionHash: string;
 }
-
+  
 export interface Query {
     text: string;
     values?: (string | number | bigint | Date)[];
@@ -60,4 +61,9 @@ export interface Config {
 export interface User {
     socketId: string;
     address: string;
+  }
+
+
+export interface CustomSocket extends Socket {
+    userAddress: string;
   }
