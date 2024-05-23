@@ -1,24 +1,35 @@
 
 import dotenv from "dotenv";
 import { Pool, QueryResult } from 'pg';
-import { loggerServer } from "../utils/logger.js";
-import { ParsedLog, Query, ResultBdd, ResultVolume } from "../utils/interfaces.js";
+import { loggerServer } from "../../utils/logger.js";
+import { ParsedLog, Query, ResultBdd, ResultVolume } from "../../utils/interfaces.js";
+import _ from "lodash";
 
 dotenv.config();
 
 export class DataBase {
 
   pool: Pool;
+  saveTx: string[];
+  saveTime: string[];
 
   constructor() {
     this.pool = new Pool({
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      host: process.env.POSTGRES_HOST,
-      // port: process.env.PORT,
-      database: process.env.POSTGRES_DB
+      user: process.env.USR,
+      password: process.env.PASSWORD,
+      host: process.env.HOST,
+      database: process.env.DB
     });
+    this.saveTx = [];
+    this.saveTime = [];
+
   }
+
+  async resetFetching() {
+    this.saveTime = [];
+    this.saveTx = [];
+  }
+
 
   async deleteAllData(): Promise<void> {
     const query = {
@@ -31,6 +42,21 @@ export class DataBase {
 
     } catch (error) {
       loggerServer.error('Error deleting data:', error);
+      throw error;
+    }
+  }
+
+  async updateDataVolumes(timestamp: Date, volume: number): Promise<void> {
+    const query: Query = {
+      text: 'UPDATE contract_volumes SET volume = $1 WHERE timestamp = $2',
+      values: [volume, timestamp],
+    };
+    try {
+      loggerServer.trace('Data volumes update waiting...');
+      await this.pool.query(query);
+      loggerServer.info('Data volumes updated successfully');
+    } catch (error) {
+      loggerServer.error('Error updating data volumes:', error);
       throw error;
     }
   }
@@ -49,7 +75,6 @@ export class DataBase {
       throw error;
     }
   }
-  
 
   async getAllDataFromAddr(fromAddress: string): Promise<ResultBdd[]> {
     const query: Query = {
@@ -125,7 +150,6 @@ export class DataBase {
     }
   }
 
-
   async getAllAproval(): Promise<ResultBdd[]> {
     const query: Query = {
       text: "SELECT * FROM contract_logs WHERE eventName='Approval'"
@@ -154,21 +178,6 @@ export class DataBase {
       throw error;
     }
   }
-
-  /*async updateVolumneByDate(parsedLog: ParsedLog): Promise<void> {
-    const query: Query = {
-      text: 'INSERT INTO contract_logs (transactionHash, blockNumber, eventName, fromAddress, toAddress, value) VALUES ($1, $2, $3, $4, $5, $6)',
-      values: [parsedLog.transactionHash, parsedLog.blockNumber, parsedLog.eventName, parsedLog.from, parsedLog.to, parsedLog.value],
-    };
-    try {
-      loggerServer.trace('Data insert wating...');
-      await this.pool.query(query);
-      loggerServer.info('Data inserted successfully');
-    } catch (error) {
-      loggerServer.error('Error inserting data:', error);
-      throw error;
-    }
-  }*/
 
   async insertDataLogs(parsedLog: ParsedLog): Promise<void> {
     const query: Query = {
@@ -200,22 +209,6 @@ export class DataBase {
     }
   }
 
-  async updateDataVolumes(timestamp: Date, volume: number): Promise<void> {
-    const query: Query = {
-      text: 'UPDATE contract_volumes SET volume = $1 WHERE timestamp = $2',
-      values: [volume, timestamp],
-    };
-    try {
-      loggerServer.trace('Data volumes update waiting...');
-      await this.pool.query(query);
-      loggerServer.info('Data volumes updated successfully');
-    } catch (error) {
-      loggerServer.error('Error updating data volumes:', error);
-      throw error;
-    }
-  }
-  
-
   async getAllVolumes(): Promise<ResultVolume[]> {
     const query: Query = {
       text: "SELECT * FROM contract_volumes"
@@ -239,5 +232,42 @@ export class DataBase {
       throw error;
     }
   }
+  
 
+  savedTx(array: ResultBdd[]): void {
+    array.map((el: ResultBdd) => {
+      if (el.blocknumber !== undefined) {
+        this.saveTx.push(el.transactionhash);
+      }
+    });
+  }
+
+
+  savingTx(parsed: ParsedLog[]) {
+    parsed.map((el: ParsedLog) => {
+      _.union(this.saveTx, el.transactionHash);
+    });
+  }
+
+
+  savingTime(array: ResultVolume[]): void {
+    array.map((el: ResultVolume) => {
+      if (el.timestamp !== undefined) {
+        this.saveTime.push(el.timestamp);
+      }
+    });
+  }
+
+
+  async init(): Promise<void> {
+    try {
+      const readAll: ResultBdd[] = await this.getData();
+      this.savedTx(readAll);
+      const allVolumes: ResultVolume[] = await this.getAllVolumes();
+      this.savingTime(allVolumes);
+    } catch (error) {
+      loggerServer.fatal("Init Database: ", error);
+      
+    } 
+  }
 }

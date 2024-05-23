@@ -227,7 +227,6 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
     try {
       if (isArrowUp) {
         if (actualToken === "WBTC") {
-          console.log("PIPIPIPIPIPIP");
             await sendSwap(amtSplippage, amountABig, pathWbtcUsd, "swapTokensForExactTokens")
          // await sendSwap(amtSplippage, amountABig, pathWbtcUsd, "swapExactTokensForTokens")
         } else {
@@ -263,8 +262,6 @@ const Swap = ({ balanceBusd, balanceWbtc, addressUser }) => {
        token = actualToken === "BUSD" ? "WBTC" : "BUSD";
      }*/
 
-
-    console.log(amountA, amountB);
     if (actualToken === "BUSD") {
       const amount = isArrowUp ? amountB : amountA;
       calculeAmountOut(amount, token, true);
