@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 import { loggerServer } from "../../utils/logger.js";
 import { Server as SocketIOServer } from "socket.io";
-import { CustomSocket, ParsedLog, ResultVolume, User } from "../../utils/interfaces.js";
+import { CustomSocket, ParsedLog, ResultVolume } from "../../utils/interfaces.js";
 import { ServerV2 } from "./ServerV2.js";
 import { Socket as Sck } from "socket.io";
 import { UserManager } from "../Users.js";
@@ -47,11 +47,11 @@ export class Socket extends SocketIOServer {
   }
 
   sendDataToClientWithAddress(socketId: string, data: ParsedLog) {
-    this.to(socketId).emit("data", data);
+    this.to(socketId).emit("data", this.parsingWs(data));
   }
 
   sendWsToAllClients(data: ParsedLog) {
-    this.emit("allData", data);
+    this.emit("allData", this.parsingWs(data));
   }
 
   sendWsToClient(socketId: string, data: ParsedLog) {
