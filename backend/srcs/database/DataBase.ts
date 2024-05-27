@@ -15,11 +15,10 @@ export class DataBase {
 
   constructor() {
     this.pool = new Pool({
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      host: process.env.POSTGRES_HOST,
-      // port: process.env.PORT,
-      database: process.env.POSTGRES_DB
+      user: process.env.USR,
+      password: process.env.PASSWORD,
+      host: process.env.HOST,
+      database: process.env.DB
     });
     this.saveTx = [];
     this.saveTime = [];
@@ -233,7 +232,6 @@ export class DataBase {
       throw error;
     }
   }
-  
 
   savedTx(array: ResultBdd[]): void {
     array.map((el: ResultBdd) => {
@@ -243,13 +241,11 @@ export class DataBase {
     });
   }
 
-
   savingTx(parsed: ParsedLog[]) {
     parsed.map((el: ParsedLog) => {
       _.union(this.saveTx, el.transactionHash);
     });
   }
-
 
   savingTime(array: ResultVolume[]): void {
     array.map((el: ResultVolume) => {
@@ -258,8 +254,7 @@ export class DataBase {
       }
     });
   }
-
-
+  
   async init(): Promise<void> {
     try {
       const readAll: ResultBdd[] = await this.getData();

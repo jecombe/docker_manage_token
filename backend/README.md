@@ -1,5 +1,3 @@
-# README
-
 ## Class Descriptions
 
 ### Class Core

@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 import { loggerServer } from "../../utils/logger.js";
 import { DataBase } from "../database/DataBase.js";
-import { Core } from "../Core.js";
+import { Core } from "../core/Core.js";
 import { Request, Response, Express } from 'express';
 
 dotenv.config();

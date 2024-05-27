@@ -1,5 +1,4 @@
-// UserManager.ts
-import { User } from "../utils/interfaces.js";
+import { User } from "../../utils/interfaces.js";
 
 export class UserManager {
   private users: { [address: string]: User };
@@ -20,9 +19,8 @@ export class UserManager {
   }
 
   getSocketId(addr: string): User {
-    return this.users[addr]
+    return this.users[addr];
   }
-
 
   removeUser(address: string) {
     if (address in this.users) {

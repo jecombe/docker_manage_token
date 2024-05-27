@@ -5,23 +5,37 @@ import { Server as SocketIOServer } from "socket.io";
 import { CustomSocket, ParsedLog, ResultVolume } from "../../utils/interfaces.js";
 import { ServerV2 } from "./ServerV2.js";
 import { Socket as Sck } from "socket.io";
-import { UserManager } from "../Users.js";
+import { UserManager } from "../users/Users.js";
 
 dotenv.config();
 
 export class Socket extends SocketIOServer {
-  private managerUser: UserManager;
-  constructor(server: ServerV2, managerUser: UserManager ) {
+  public managerUser: UserManager;
+  constructor(server: ServerV2) {
+
     super(server.server, {
       cors: {
         origin: "*",
         methods: ["GET", "POST"]
       }
     });
-    this.managerUser = managerUser;
+    this.managerUser = new UserManager();
     this.startWebSocketServer();
   }
 
+  //private
+  private parsingWs(repWs: ParsedLog) {
+    return {
+      blocknumber: repWs.blockNumber,
+      eventname: repWs.eventName,
+      fromaddress: repWs.from,
+      toaddress: repWs.to,
+      transactionhash: repWs.transactionHash,
+      value: repWs.value
+    };
+  }
+
+  //public
   startWebSocketServer(): void {
     loggerServer.info('Start websocket');
     this.on('connection', (socket: Sck) => {
@@ -34,16 +48,6 @@ export class Socket extends SocketIOServer {
         this.managerUser.removeUser(userAddress);
       });
     });
-  }
-  parsingWs(repWs: ParsedLog) {
-    return {
-      blocknumber: repWs.blockNumber,
-      eventname: repWs.eventName,
-      fromaddress: repWs.from,
-      toaddress: repWs.to,
-      transactionhash: repWs.transactionHash,
-      value: repWs.value
-    };
   }
 
   sendDataToClientWithAddress(socketId: string, data: ParsedLog) {

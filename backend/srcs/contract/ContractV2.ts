@@ -2,12 +2,13 @@
 import dotenv from "dotenv";
 import { loggerServer } from "../../utils/logger.js";
 import { Viem } from "./Viem.js";
-import _ from "lodash";
 import { calculateBlocksPerDay, getRangeBlock } from "../../utils/utils.js";
-import { LogEntry, LogOwner, ParsedLog } from "../../utils/interfaces.js";
+import { LogEntry, ParsedLog } from "../../utils/interfaces.js";
 import { Log, parseAbi } from "viem";
 
 dotenv.config();
+
+const ADDR_NULL = "0x0000000000000000000000000000000000000000";
 
 export class ContractV2 extends Viem {
   isContractPrev: bigint;
@@ -20,7 +21,8 @@ export class ContractV2 extends Viem {
     this.blockNumber = BigInt(0);
   }
 
-  initParsingLog(currentLog: LogEntry): ParsedLog {
+  // PRIVATE
+  private initParsingLog(currentLog: LogEntry): ParsedLog {
     return {
       eventName: currentLog.eventName,
       from: "",
@@ -32,41 +34,7 @@ export class ContractV2 extends Viem {
   }
 
 
-  parseResult(logs: LogEntry[]): ParsedLog[] {
-    return logs.reduce((accumulator: ParsedLog[], currentLog: LogEntry) => {
-
-      const parsedLog: ParsedLog = this.initParsingLog(currentLog);
-
-      if (currentLog.eventName === "Transfer" && currentLog.args.from && currentLog.args.to) {
-        parsedLog.from = currentLog.args.from;
-        parsedLog.to = currentLog.args.to;
-        parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
-        parsedLog.transactionHash = currentLog.transactionHash;
-      }
-
-      else if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
-        parsedLog.from = currentLog.args.owner;
-        parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || '';
-        parsedLog.value = this.parseNumberToEth(`${currentLog.args.value}`);
-        parsedLog.transactionHash = currentLog.transactionHash;
-      }
-      else loggerServer.info("Uknow envent come here: ", currentLog);
-
-      accumulator.push(parsedLog);
-      return accumulator;
-    }, []);
-  }
-
-  async setActualBlock() {
-    try {
-      this.blockNumber = BigInt(await this.getActualBlock());
-    } catch (error) {
-      loggerServer.fatal("Error SetActualBlock: ", error)
-      this.blockNumber = BigInt(0);
-    }
-  }
-
-  parseLogListener(logs: Log[]): LogEntry[] {
+  private parseLogListener(logs: Log[]): LogEntry[] {
     const convertedLogs: LogEntry[] = logs.map((log: any) => {
       const convertedLog: LogEntry = {
         args: log.args,
@@ -81,8 +49,61 @@ export class ContractV2 extends Viem {
     return convertedLogs;
   }
 
+  private parseResult(logs: LogEntry[]): ParsedLog[] {
+    return logs.reduce((accumulator: ParsedLog[], currentLog: LogEntry) => {
 
-  startFetchingLogs(callback: (logs: ParsedLog[]) => void): void {
+      const parsedLog: ParsedLog = this.initParsingLog(currentLog);
+      
+      this.proccessOwner(currentLog);
+
+      if (!this.processTransfer(currentLog, parsedLog) && !this.processApproval(currentLog, parsedLog)) {
+        loggerServer.info("Uknow envent come here: ", currentLog);
+      }
+      accumulator.push(parsedLog);
+
+      return accumulator;
+    }, []);
+  }
+
+  proccessOwner(currentLog: LogEntry) {
+    this.isContractPrev = this.contractIsPreviousOwner(currentLog);
+  }
+
+  private processTransfer(currentLog: LogEntry, parsedLog: ParsedLog) {
+    if (currentLog.eventName === "Transfer" && currentLog.args.from && currentLog.args.to) {
+      parsedLog.from = currentLog.args.from;
+      parsedLog.to = currentLog.args.to;
+      parsedLog.value = Number(this.formatEther(BigInt(`${currentLog.args.value}`)));
+      parsedLog.transactionHash = currentLog.transactionHash;
+      return true;
+    }
+    return false;
+  }
+
+ private processApproval(currentLog: LogEntry, parsedLog: ParsedLog) {
+    if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
+      parsedLog.from = currentLog.args.owner;
+      parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || '';
+      parsedLog.value = Number(this.formatEther(BigInt(`${currentLog.args.value}`)));
+      parsedLog.transactionHash = currentLog.transactionHash;
+      return true;
+    }
+    return false;
+  }
+
+
+
+
+  async setActualBlock() {
+    try {
+      this.blockNumber = BigInt(await this.getActualBlock());
+    } catch (error) {
+      loggerServer.fatal("Error SetActualBlock: ", error);
+      this.blockNumber = BigInt(0);
+    }
+  }
+
+  startFetchingLogs(callback: (logs: ParsedLog[]) => void) {
     this.startListener((logs: Log[]) => {
       const finalParse = this.parseResult(this.parseLogListener(logs));
       callback(finalParse);
@@ -94,17 +115,7 @@ export class ContractV2 extends Viem {
       address: `0x${process.env.CONTRACT}`,
       events: parseAbi([
         "event Approval(address indexed owner, address indexed sender, uint256 value)",
-        "event Transfer(address indexed from, address indexed to, uint256 value)"
-      ]),
-      fromBlock,
-      toBlock,
-    });
-  }
-
-  async getLogsOwnerShip(fromBlock: bigint, toBlock: bigint): Promise<LogOwner[]> {
-    return this.cliPublic.getLogs({
-      address: `0x${process.env.CONTRACT}`,
-      events: parseAbi([
+        "event Transfer(address indexed from, address indexed to, uint256 value)",
         "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
       ]),
       fromBlock,
@@ -112,30 +123,24 @@ export class ContractV2 extends Viem {
     });
   }
 
-  parseNumberToEth(number: string) {
-    const numberBigInt: bigint = BigInt(number);
-    return Number(this.formatEther(numberBigInt));
-  };
-
-
-  contractIsPreviousOwner(obj: LogOwner): bigint {
+  contractIsPreviousOwner(obj: LogEntry): bigint {
+    console.log(obj.eventName);
+    
     if (obj.eventName !== "OwnershipTransferred") return BigInt(0);
 
-    if (obj.args.previousOwner === "0x0000000000000000000000000000000000000000") {
+    if (obj.args.previousOwner === ADDR_NULL) {
+      console.log("*******************************************************************************");
+
       return obj.blockNumber;
     }
     return BigInt(0);
   }
-
 
   async manageProcessRequest(index: number, blockNumber: bigint): Promise<ParsedLog[]> {
     try {
       const { fromBlock, toBlock } = getRangeBlock(BigInt(calculateBlocksPerDay(14)), index, blockNumber);
 
       const batchLogs: LogEntry[] = await this.getBatchLogs(fromBlock, toBlock);
-      const owner: LogOwner[] = await this.getLogsOwnerShip(fromBlock, toBlock);
-
-      if (!_.isEmpty(owner)) this.isContractPrev = this.contractIsPreviousOwner(owner[0]);
 
       return this.parseResult(batchLogs);
 
