@@ -6,22 +6,24 @@ import { ServerV2 } from "./../server/ServerV2.js";
 import { Socket } from "./../server/Socket.js";
 import { Sender } from "./../core/Sender.js";
 import { loggerServer } from "../../utils/logger.js";
+import { Opt } from "../../utils/interfaces.js";
 
 export class Analyze {
-  public database: DataBase; 
-  public contract: ContractV2;
-  public server: ServerV2;
-  public core: Core;
-  public socket: Socket;
+  database: DataBase; 
+  contract: ContractV2;
+  server: ServerV2;
+  core: Core;
+  socket: Socket;
   isInit: boolean;
+  opt: Opt;
   
-  
-  constructor() {
-    this.contract = new ContractV2();
-    this.database = new DataBase();
+  constructor(opt: Opt) {
+    this.opt = opt;
+    this.contract = new ContractV2(opt);
+    this.database = new DataBase(opt);
     this.server = new ServerV2();
     this.socket = new Socket(this.server);
-    this.core = new Core(this.contract, new Sender(this.database, this.socket));
+    this.core = new Core(this.contract, this.opt, new Sender(this.database, this.socket));
     new Api(this.server.app, this.database, this.core);
     this.isInit = false;
   }
@@ -34,23 +36,22 @@ export class Analyze {
   print() {
     loggerServer.info("============= Starting application manager token =============");
     loggerServer.trace(`
-
-          
           ██████╗ ██╗   ██╗███████╗██████╗ 
           ██╔══██╗██║   ██║██╔════╝██╔══██╗
           ██████╔╝██║   ██║███████╗██║  ██║
           ██╔══██╗██║   ██║╚════██║██║  ██║
           ██████╔╝╚██████╔╝███████║██████╔╝
-          ╚═════╝  ╚═════╝ ╚══════╝╚═════╝ 
-                                           
+          ╚═════╝  ╚═════╝ ╚══════╝╚═════╝                   
           `);
   }
   
-  async init() {
+  async init(isCleaning: boolean = true) {
     try {
       this.print();
       await this.database.startBdd();
-      await this.clean();
+
+      if (isCleaning) await this.clean();
+
       await this.database.init();
       await this.server.init();
       this.isInit = true;

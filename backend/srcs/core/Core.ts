@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 import { loggerServer } from "../../utils/logger.js";
 import { compareDates, getRateLimits, loggingDate, removeTimeFromDate, subtractOneDay, waiting, waitingRate } from "../../utils/utils.js";
-import { ParsedLog } from "../../utils/interfaces.js";
+import { Opt, ParsedLog } from "../../utils/interfaces.js";
 import { ContractV2 } from "../contract/ContractV2.js";
 import { Sender } from "./Sender.js";
 
@@ -16,8 +16,10 @@ export class Core {
   timeVolume: Date | null;
   saveBatch: Date | null;
   sender: Sender;
+  opt: Opt;
 
-  constructor(contract: ContractV2, sender:Sender) {
+  constructor(contract: ContractV2, opt: Opt, sender:Sender) {
+    this.opt = opt;
     this.timeVolume = null;
     this.sender = sender;
     this.contract = contract;
@@ -41,14 +43,12 @@ export class Core {
     this.isFetching = false;
     this.index = 0;
     this.saveBatch = null;
-    this.sender.database.resetFetching();
+    //this.sender.database.resetFetching();
   }
 
   async processSending(): Promise<boolean> {
     try {
       let isFetchingAfterNow = false;
-
-      this.contract.isContractPrev = BigInt(0);
 
       if (!this.isFetching) return true;
 
@@ -64,7 +64,7 @@ export class Core {
 
       if (isFetchingAfterNow) this.index++;
 
-      if (this.timeVolume && isFetchingAfterNow) this.timeVolume = subtractOneDay(this.timeVolume);
+      if (this.timeVolume && isFetchingAfterNow) this.timeVolume = subtractOneDay(this.timeVolume);      
 
       if (this.contract.isContractPrev !== BigInt(0)) return true;
 
@@ -97,14 +97,15 @@ export class Core {
 
       while (this.isFetching) {
         const isStop = await this.processLogsBatch();
-        await waiting(6000);
+        await waiting(this.opt.waitingRequests);
         if (isStop) {
           loggerServer.warn("process fetching is stop -> smart contract is born");
           this.index = 0;
           loggerServer.info("waiting for a new fetching...");
           this.saveBatch = removeTimeFromDate(new Date());
-
-          await waiting(6000);
+          this.contract.isContractPrev = BigInt(0);
+          this.contract.blockNumber = BigInt(0);
+          await waiting(this.opt.waitingRequests);
           await this.newFetching();
         }
       }

@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { loggerServer } from "../../utils/logger.js";
 import { Viem } from "./Viem.js";
 import { calculateBlocksPerDay, getRangeBlock } from "../../utils/utils.js";
-import { LogEntry, ParsedLog } from "../../utils/interfaces.js";
+import { LogEntry, Opt, ParsedLog } from "../../utils/interfaces.js";
 import { Log, parseAbi } from "viem";
 
 dotenv.config();
@@ -14,9 +14,8 @@ export class ContractV2 extends Viem {
   isContractPrev: bigint;
   blockNumber: bigint;
 
-
-  constructor() {
-    super();
+  constructor(opt: Opt) {
+    super(opt);
     this.isContractPrev = BigInt(0);
     this.blockNumber = BigInt(0);
   }
@@ -54,19 +53,18 @@ export class ContractV2 extends Viem {
 
       const parsedLog: ParsedLog = this.initParsingLog(currentLog);
       
-      this.proccessOwner(currentLog);
+      this.contractIsPreviousOwner(currentLog);      
 
-      if (!this.processTransfer(currentLog, parsedLog) && !this.processApproval(currentLog, parsedLog)) {
-        loggerServer.info("Uknow envent come here: ", currentLog);
+      if (this.isContractPrev === BigInt(0)) {
+        if (!this.processTransfer(currentLog, parsedLog) && !this.processApproval(currentLog, parsedLog)) {
+          loggerServer.info("Uknow envent come here: ", currentLog);
+        }
       }
+
       accumulator.push(parsedLog);
 
       return accumulator;
     }, []);
-  }
-
-  proccessOwner(currentLog: LogEntry) {
-    this.isContractPrev = this.contractIsPreviousOwner(currentLog);
   }
 
   private processTransfer(currentLog: LogEntry, parsedLog: ParsedLog) {
@@ -80,7 +78,7 @@ export class ContractV2 extends Viem {
     return false;
   }
 
- private processApproval(currentLog: LogEntry, parsedLog: ParsedLog) {
+  private processApproval(currentLog: LogEntry, parsedLog: ParsedLog) {
     if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
       parsedLog.from = currentLog.args.owner;
       parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || '';
@@ -90,8 +88,6 @@ export class ContractV2 extends Viem {
     }
     return false;
   }
-
-
 
 
   async setActualBlock() {
@@ -123,24 +119,25 @@ export class ContractV2 extends Viem {
     });
   }
 
-  contractIsPreviousOwner(obj: LogEntry): bigint {
-    console.log(obj.eventName);
-    
-    if (obj.eventName !== "OwnershipTransferred") return BigInt(0);
+
+  contractIsPreviousOwner(obj: LogEntry) {    
+    if (obj.eventName !== "OwnershipTransferred") return;
 
     if (obj.args.previousOwner === ADDR_NULL) {
-      console.log("*******************************************************************************");
-
-      return obj.blockNumber;
+      this.isContractPrev = obj.blockNumber;      
     }
-    return BigInt(0);
   }
 
   async manageProcessRequest(index: number, blockNumber: bigint): Promise<ParsedLog[]> {
     try {
       const { fromBlock, toBlock } = getRangeBlock(BigInt(calculateBlocksPerDay(14)), index, blockNumber);
 
-      const batchLogs: LogEntry[] = await this.getBatchLogs(fromBlock, toBlock);
+      /*const batchLogs = await this.getLogs(fromBlock, toBlock, [
+        "event Approval(address indexed owner, address indexed sender, uint256 value)",
+        "event Transfer(address indexed from, address indexed to, uint256 value)",
+        "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
+      ])*/
+      const batchLogs = await this.getBatchLogs(fromBlock, toBlock);
 
       return this.parseResult(batchLogs);
 

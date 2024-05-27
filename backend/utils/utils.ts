@@ -13,14 +13,6 @@ export const calculateBlocksPerDay = (blockIntervalSeconds: number): number => {
   return Math.round(blocksPerDay);
 };
 
-export const getAbiEvent = (): string[] => {
-  return [
-    "event Approval(address indexed owner, address indexed sender, uint256 value)",
-    "event Transfer(address indexed from, address indexed to, uint256 value)",
-  ];
-};
-
-
 export const subtractOneDay = (currentDate: Date): Date => {
   const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
   const currentTimestamp = currentDate.getTime();
@@ -38,33 +30,22 @@ export const removeTimeFromDate = (currentDate: Date): Date => {
   return dateOnly;
 };
 
-
 export const parseTimestamp = (timestamp: number): string => {
   const date = new Date(timestamp);
   return date.toString();
 };
 
-
 export const compareDates = (date1: Date, date2: Date): boolean => {
-  // Convertir les dates en millisecondes
   const time1 = date1.getTime();
   const time2 = date2.getTime();
 
-  // Calculer la différence en millisecondes
   const diffTime = Math.abs(time1 - time2);
 
-  // Convertir la différence en jours
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  // Si la différence en jours est supérieure à 0, les dates ont des jours d'écart
-
-  console.log(diffDays, date1, date2);
-  
   if (diffDays > 0) {
     return false;
   }
-
-  // Sinon, les dates sont identiques ou ont moins d'un jour d'écart
   return true;
 };
 

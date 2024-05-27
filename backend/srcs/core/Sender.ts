@@ -96,7 +96,6 @@ export class Sender {
         } else {
           loggerServer.error("Log already existe", parsed);
         }
-
       }
     } catch (error) {
       loggerServer.fatal("sendLogsWithCheck", error);
@@ -129,7 +128,6 @@ export class Sender {
 
     } catch (error) {
       console.log(this.database.saveTx);
-        
       loggerServer.fatal("SendLog",error);
       throw error;
 

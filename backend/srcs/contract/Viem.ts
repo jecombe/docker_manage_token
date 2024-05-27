@@ -4,17 +4,18 @@ import * as ViemPkg from "viem";
 import { sepolia } from "viem/chains";
 import { loggerServer } from "../../utils/logger";
 import abi from "../../utils/abi.js";
+import { Opt } from "../../utils/interfaces";
 
 dotenv.config();
 
 export class Viem {
   public cliPublic: ViemPkg.PublicClient;
   public ws: ViemPkg.PublicClient;
-  private wsUrl: string;
+  private opt: Opt;
 
 
-  constructor() {
-    this.wsUrl = 'wss://sepolia.infura.io/ws/v3/3576824e640441d38580334356ef5046';
+  constructor(opt: Opt) {
+    this.opt = opt;
     this.cliPublic = this.connectPublicClient();
     this.ws = this.connectPublicWs();
   }
@@ -22,15 +23,7 @@ export class Viem {
   connectPublicWs(): ViemPkg.PublicClient {
     return ViemPkg.createPublicClient({
       chain: sepolia as ViemPkg.Chain,
-      transport: ViemPkg.webSocket(this.wsUrl, {
-        reconnect: {
-          // maxAttempts:
-          delay: 2000, // Delay between reconnection attempts (in ms)
-        },
-        retryCount: 3, // Maximum number of retries for failed requests
-        retryDelay: 150, // Base delay between retry attempts (in ms)
-        timeout: 10000, // Timeout for async WebSocket requests (in ms)
-      }),
+      transport: ViemPkg.webSocket(this.opt.wsUrl, this.opt.viemConfig),
     });
   }
 
@@ -45,11 +38,21 @@ export class Viem {
   startListener(callback: (logs: ViemPkg.Log[]) => void): ViemPkg.WatchContractEventReturnType {
     loggerServer.info("Listening Events smart contract...");
     return this.ws.watchContractEvent({
-      address: `0x${process.env.CONTRACT}`,
+      address: `0x${this.opt.busdContract}`,
       abi,
       onLogs: callback,
     });
   }
+
+
+  /*async getLogs(fromBlock: bigint, toBlock: bigint, abi: readonly string[]): Promise<LogEntry[]> {
+    return this.cliPublic.getLogs({
+      address: `0x${process.env.CONTRACT}`,
+      events: ViemPkg.parseAbi(abi),
+      fromBlock,
+      toBlock,
+    });
+  }*/
 
   formatEther(nb: bigint, unit?: "wei" | "gwei" | undefined): string {
     return ViemPkg.formatEther(nb, unit);

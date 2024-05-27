@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 import { Pool, QueryResult } from 'pg';
 import { loggerServer } from "../../utils/logger.js";
-import { ParsedLog, Query, ResultBdd, ResultVolume } from "../../utils/interfaces.js";
+import { Opt, ParsedLog, Query, ResultBdd, ResultVolume } from "../../utils/interfaces.js";
 import _ from "lodash";
 
 dotenv.config();
@@ -12,17 +12,12 @@ export class DataBase {
   pool: Pool;
   saveTx: string[];
   saveTime: string[];
-
-  constructor() {
-    this.pool = new Pool({
-      user: process.env.USR,
-      password: process.env.PASSWORD,
-      host: process.env.HOST,
-      database: process.env.DB
-    });
+  opt: Opt;
+  constructor(opt: Opt) {
+    this.opt = opt;
+    this.pool = new Pool(opt.databaseConfig);
     this.saveTx = [];
     this.saveTime = [];
-
   }
 
   async resetFetching() {
