@@ -8,11 +8,11 @@ import _ from "lodash";
 dotenv.config();
 
 export class DataBase {
-
   pool: Pool;
   saveTx: string[];
   saveTime: string[];
   opt: Opt;
+
   constructor(opt: Opt) {
     this.opt = opt;
     this.pool = new Pool(opt.databaseConfig);

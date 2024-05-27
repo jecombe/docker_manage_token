@@ -54,9 +54,9 @@ export class ContractV2 extends Viem {
       
       this.contractIsPreviousOwner(currentLog);      
 
-        if (!this.processTransfer(currentLog, parsedLog) && !this.processApproval(currentLog, parsedLog)) {
-          loggerServer.fatal("Uknow envent come here: ", currentLog);
-        }
+      if (!this.processTransfer(currentLog, parsedLog) && !this.processApproval(currentLog, parsedLog)) {
+        loggerServer.fatal("Uknow envent come here: ", currentLog);
+      }
       
       accumulator.push(parsedLog);
 
