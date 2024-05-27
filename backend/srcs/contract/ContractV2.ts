@@ -48,17 +48,16 @@ export class ContractV2 extends Viem {
   }
 
   private parseResult(logs: LogEntry[]): ParsedLog[] {
-    return logs.reduce((accumulator: ParsedLog[], currentLog: LogEntry) => {
+    return logs.reduce((accumulator: ParsedLog[], currentLog: LogEntry) => {      
 
       const parsedLog: ParsedLog = this.initParsingLog(currentLog);
       
       this.contractIsPreviousOwner(currentLog);      
 
-      if (this.isContractPrev === BigInt(0)) {
         if (!this.processTransfer(currentLog, parsedLog) && !this.processApproval(currentLog, parsedLog)) {
           loggerServer.fatal("Uknow envent come here: ", currentLog);
         }
-      }
+      
       accumulator.push(parsedLog);
 
       return accumulator;

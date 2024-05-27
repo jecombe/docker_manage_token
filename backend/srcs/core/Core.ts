@@ -43,7 +43,7 @@ export class Core {
     this.isFetching = false;
     this.index = 0;
     this.saveBatch = null;
-    //this.sender.database.resetFetching();
+    this.sender.database.resetFetching();
   }
 
   async processSending(): Promise<boolean> {
