@@ -32,7 +32,6 @@ export class ContractV2 extends Viem {
     };
   }
 
-
   private parseLogListener(logs: Log[]): LogEntry[] {
     const convertedLogs: LogEntry[] = logs.map((log: any) => {
       const convertedLog: LogEntry = {
@@ -57,10 +56,9 @@ export class ContractV2 extends Viem {
 
       if (this.isContractPrev === BigInt(0)) {
         if (!this.processTransfer(currentLog, parsedLog) && !this.processApproval(currentLog, parsedLog)) {
-          loggerServer.info("Uknow envent come here: ", currentLog);
+          loggerServer.fatal("Uknow envent come here: ", currentLog);
         }
       }
-
       accumulator.push(parsedLog);
 
       return accumulator;

@@ -75,6 +75,7 @@ export class Sender {
 
       for (const el of parsed) {
         if (!_.includes(this.database.saveTx, el.transactionHash)) {
+          loggerServer.trace("Adding new thing", el);
           await this.sendLog(el, isRealTime);
         }
 
@@ -91,10 +92,9 @@ export class Sender {
         const checkExisting: ParsedLog[] = this.isExist(parsed);
         if (!_.isEmpty(checkExisting)) {
 
-          loggerServer.trace("Adding new thing");
           await this.sendData(checkExisting, Number(this.calculateVolume(checkExisting)), isRealTime, timeVolume);
         } else {
-          loggerServer.error("Log already existe", parsed);
+          loggerServer.warn("Log already existe", parsed);
         }
       }
     } catch (error) {

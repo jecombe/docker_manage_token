@@ -101,7 +101,7 @@ export class Core {
         if (isStop) {
           loggerServer.warn("process fetching is stop -> smart contract is born");
           this.index = 0;
-          loggerServer.info("waiting for a new fetching...");
+          loggerServer.debug("waiting for a new fetching...");
           this.saveBatch = removeTimeFromDate(new Date());
           this.contract.isContractPrev = BigInt(0);
           this.contract.blockNumber = BigInt(0);
