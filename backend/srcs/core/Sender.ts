@@ -6,14 +6,15 @@ import { isElementInArray, removeTimeFromDate } from "../../utils/utils.js";
 import { ParsedLog } from "../../utils/interfaces.js";
 import { Socket } from "../server/Socket.js";
 import { DataBase } from "../database/DataBase.js";
+import { DataBaseV2 } from "../database/DatabseV2.js";
 
 dotenv.config();
 
 export class Sender {
-  database: DataBase;
+  database: DataBaseV2;
   socket: Socket;
 
-  constructor(database: DataBase, socket: Socket) {
+  constructor(database: DataBaseV2, socket: Socket) {
     this.database = database;
     this.socket = socket;
   }
@@ -27,7 +28,7 @@ export class Sender {
       this.socket.sendWsVolumeToAllClients({ timestamp, volume: `${volume}` });
     } else {
       this.socket.sendWsVolumeToAllClients({ timestamp, volume: `${volume}` });
-      return this.database.insertDataVolumes(timestamp, volume);
+      return this.database.insertDataVolumes(`${timestamp}`, volume);
     }
   }
 
@@ -51,6 +52,9 @@ export class Sender {
   }
 
   async sendVolumeDaily(volume: number, timeVolume: Date | null): Promise<void> {
+
+    console.log("::::::::::::::::", this.database.saveTime, timeVolume);
+    
 
     if (timeVolume && !isElementInArray(this.database.saveTime, timeVolume)) {
       const ts = removeTimeFromDate(timeVolume);
@@ -104,7 +108,7 @@ export class Sender {
   }
 
   getSocketIds(addressTo: string, addressFrom: string){
-    const socketIdTo = this.socket?.managerUser.getSocketId(addressTo); 
+    const socketIdTo = this.socket.managerUser.getSocketId(addressTo); 
     const socketIdFrom = this.socket.managerUser.getSocketId(addressFrom);
 
     return {socketIdTo, socketIdFrom};

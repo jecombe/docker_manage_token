@@ -22,7 +22,7 @@ export class ContractLog {
   @Column({ nullable: true })
     toAddress?: string;
 
-  @Column({ type: 'bigint', nullable: true })
+  @Column({ nullable: true })
     value?: string;
 }
 

@@ -1,4 +1,5 @@
 import { Analyze } from "./srcs/core/Analyze.js";
+import { ContractLog, ContractVolume } from "./srcs/database/Entity.js";
 import { Opt } from "./utils/interfaces.js";
 
 
@@ -20,13 +21,23 @@ const opt: Opt = {
     password: `${process.env.PASSWORD}`,
     host: `${process.env.HOST}`,
     database: `${process.env.DB}`
+  },
+  databaseV2Config: {
+    type: "postgres",
+    username: `${process.env.USR}`,
+    password: `${process.env.PASSWORD}`,
+    host: `${process.env.HOST}`,
+    database: `${process.env.DB}`,
+    entities: [ContractLog, ContractVolume],
+    synchronize: true,
+    logging: true,
   }
 };
 
 (async () => {
   try {
     const analyze = new Analyze(opt);
-    await analyze.init();
+    await analyze.init(false);
     analyze.startApp();
   } catch (error) {
     console.log(error);

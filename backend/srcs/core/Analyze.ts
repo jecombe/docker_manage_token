@@ -7,9 +7,10 @@ import { Socket } from "./../server/Socket.js";
 import { Sender } from "./../core/Sender.js";
 import { loggerServer } from "../../utils/logger.js";
 import { Opt } from "../../utils/interfaces.js";
+import { DataBaseV2 } from "../database/DatabseV2.js";
 
 export class Analyze {
-  database: DataBase; 
+  database: DataBaseV2; 
   contract: ContractV2;
   server: ServerV2;
   core: Core;
@@ -20,7 +21,7 @@ export class Analyze {
   constructor(opt: Opt) {
     this.opt = opt;
     this.contract = new ContractV2(opt);
-    this.database = new DataBase(opt);
+    this.database = new DataBaseV2(opt);
     this.server = new ServerV2();
     this.socket = new Socket(this.server);
     this.core = new Core(this.contract, this.opt, new Sender(this.database, this.socket));

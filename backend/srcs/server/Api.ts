@@ -4,16 +4,17 @@ import { loggerServer } from "../../utils/logger.js";
 import { DataBase } from "../database/DataBase.js";
 import { Core } from "../core/Core.js";
 import { Request, Response, Express } from 'express';
+import { DataBaseV2 } from "../database/DatabseV2.js";
 
 dotenv.config();
 
 export class Api{
 
   private app: Express;
-  private database: DataBase;
+  private database: DataBaseV2;
   private core: Core;
 
-  constructor(app: Express, database: DataBase, core: Core) {
+  constructor(app: Express, database: DataBaseV2, core: Core) {
     this.app = app;
     this.database = database;
     this.core = core;
