@@ -11,12 +11,12 @@ export class Api{
 
   private app: Express;
   private database: DataBaseV2;
-  private core: EventSync;
+  private eventSync: EventSync;
 
-  constructor(app: Express, database: DataBaseV2, core: EventSync) {
+  constructor(app: Express, database: DataBaseV2, eventSync: EventSync) {
     this.app = app;
     this.database = database;
-    this.core = core;
+    this.eventSync = eventSync;
     this.getApi();
   }
 
@@ -36,13 +36,13 @@ export class Api{
     this.app.delete("/api/delete-database", async (req:Request, res: Response) => {
       try {
         loggerServer.trace(`delete-database - Receive request from: ${req.ip}`);
-        this.core.resetFetching();
+        this.eventSync.resetFetching();
 
         await this.database.deleteAllData();
         await this.database.deleteAllVolumes();
 
         setTimeout(async () => {
-          this.core.startAfterReset();
+          this.eventSync.startAfterReset();
         }, 10000);
 
         res.json("delete database ok");
