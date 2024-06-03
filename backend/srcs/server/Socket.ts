@@ -4,14 +4,16 @@ import { loggerServer } from "../../utils/logger.js";
 import { Server as SocketIOServer } from "socket.io";
 import { CustomSocket, ParsedLog, ResultVolume } from "../../utils/interfaces.js";
 import { ServerV2 } from "./ServerV2.js";
-import { Socket as Sck } from "socket.io";
+import { Socket } from "socket.io";
 import { UserManager } from "../users/Users.js";
+import { Parser } from "../Format.js";
 
 dotenv.config();
 
-export class Socket extends SocketIOServer {
+export class SocketClient extends SocketIOServer {
   public managerUser: UserManager;
-  constructor(server: ServerV2) {
+  parser: Parser;
+  constructor(server: ServerV2, parser: Parser, managerUser: UserManager) {
 
     super(server.server, {
       cors: {
@@ -19,26 +21,15 @@ export class Socket extends SocketIOServer {
         methods: ["GET", "POST"]
       }
     });
-    this.managerUser = new UserManager();
+    this.parser = parser;
+    this.managerUser = managerUser;
     this.startWebSocketServer();
-  }
-
-  //private
-  private parsingWs(repWs: ParsedLog) {
-    return {
-      blocknumber: repWs.blockNumber,
-      eventname: repWs.eventName,
-      fromaddress: repWs.from,
-      toaddress: repWs.to,
-      transactionhash: repWs.transactionHash,
-      value: repWs.value
-    };
   }
 
   //public
   startWebSocketServer(): void {
     loggerServer.info('Start websocket');
-    this.on('connection', (socket: Sck) => {
+    this.on('connection', (socket: Socket) => {
       const customSocket = socket as unknown as CustomSocket;
       const userAddress: string = customSocket.handshake.query.address as string;
       this.managerUser.addUser(customSocket.id, userAddress);
@@ -50,16 +41,35 @@ export class Socket extends SocketIOServer {
     });
   }
 
+
+  getSocketIds(addressTo: string, addressFrom: string) {
+    const socketIdTo = this.managerUser.getSocketId(addressTo);
+    const socketIdFrom = this.managerUser.getSocketId(addressFrom);
+
+    return { socketIdTo, socketIdFrom };
+  }
+
+
+  sendingClient(data: ParsedLog, isRealTime: boolean) {
+    const { socketIdTo, socketIdFrom } = this.getSocketIds(data.to, data.from);
+
+    if (socketIdTo && isRealTime) this.sendDataToClientWithAddress(`${socketIdTo}`, data);
+    if (socketIdFrom && isRealTime) this.sendDataToClientWithAddress(`${socketIdFrom}`, data);
+
+    if (socketIdTo) this.sendWsToClient(`${socketIdTo}`, data);
+    if (socketIdFrom) this.sendWsToClient(`${socketIdFrom}`, data);
+  }
+
   sendDataToClientWithAddress(socketId: string, data: ParsedLog) {
-    this.to(socketId).emit("data", this.parsingWs(data));
+    this.to(socketId).emit("data", this.parser.parsingWs(data));
   }
 
   sendWsToAllClients(data: ParsedLog) {
-    this.emit("allData", this.parsingWs(data));
+    this.emit("allData", this.parser.parsingWs(data));
   }
 
   sendWsToClient(socketId: string, data: ParsedLog) {
-    this.to(socketId).emit("myData", this.parsingWs(data));
+    this.to(socketId).emit("myData", this.parser.parsingWs(data));
   }
 
   sendWsVolumeToAllClients(data: ResultVolume) {

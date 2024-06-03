@@ -1,10 +1,9 @@
 
 import dotenv from "dotenv";
 import { loggerServer } from "../../utils/logger.js";
-import { DataBase } from "../database/DataBase.js";
-import { Core } from "../core/Core.js";
+import { EventSync } from "../core/EventSync.js";
 import { Request, Response, Express } from 'express';
-import { DataBaseV2 } from "../database/DatabseV2.js";
+import { DataBaseV2 } from "../database/DatabaseV2.js";
 
 dotenv.config();
 
@@ -12,15 +11,14 @@ export class Api{
 
   private app: Express;
   private database: DataBaseV2;
-  private core: Core;
+  private core: EventSync;
 
-  constructor(app: Express, database: DataBaseV2, core: Core) {
+  constructor(app: Express, database: DataBaseV2, core: EventSync) {
     this.app = app;
     this.database = database;
     this.core = core;
     this.getApi();
   }
-
 
   getAllVolumesDaily(): void {
     this.app.get("/api/get-all-volumes", async (req:Request, res: Response) => {

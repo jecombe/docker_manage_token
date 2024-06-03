@@ -46,7 +46,7 @@ export interface ResultVolume {
 }
 
 interface ReconnectConfig {
-    delay: number; // Delay between reconnection attempts (in ms)
+    delay: number;
   }
   
   interface DatabaseConfig {
@@ -58,12 +58,11 @@ interface ReconnectConfig {
 
   interface ViemConfig {
     reconnect: ReconnectConfig;
-    retryCount: number; // Maximum number of retries for failed requests
-    retryDelay: number; // Base delay between retry attempts (in ms)
-    timeout: number; // Timeout for async WebSocket requests (in ms)
+    retryCount: number;
+    retryDelay: number;
+    timeout: number;
   }
   
-// Interface for DatabaseV2Config
 interface DatabaseV2Config {
   type: "postgres";
   database: string;
@@ -75,14 +74,13 @@ interface DatabaseV2Config {
   logging: boolean;
 }
 
-// Interface for Opt with the new databaseV2Config field
 export interface Opt {
   busdContract: string;
   waitingRequests: number;
   wsUrl: string;
   viemConfig: ViemConfig;
   databaseConfig: DatabaseConfig;
-  databaseV2Config: DatabaseV2Config; // Added the new configuration here
+  databaseV2Config: DatabaseV2Config;
 }
 
 export interface User {

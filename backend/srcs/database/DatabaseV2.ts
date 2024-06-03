@@ -1,29 +1,17 @@
-import { DataSource, getRepository } from 'typeorm';
-import { ContractLog, ContractVolume } from './Entity';
+import { DataSource } from 'typeorm';
+import { ContractLog, ContractVolume } from './Entity.js';
 import { loggerServer } from "../../utils/logger.js";
-import { Opt, ParsedLog } from '../../utils/interfaces';
-import _ from 'lodash';
+import { Opt, ParsedLog } from '../../utils/interfaces.js';
 
 export class DataBaseV2 {
   [x: string]: any;
-  saveTx: string[];
-  saveTime: string[];
+
   opt: Opt;
   constructor(opt: Opt) {
     this.opt = opt;
-    this.saveTx = [];
-    this.saveTime = [];
   }
-
-  async resetFetching() {
-    this.saveTime = [];
-    this.saveTx = [];
-  }
-
-
 
   async startBdd(): Promise<void> {
-
     try {
       this.AppDataSource = new DataSource(this.opt.databaseV2Config);
       await this.AppDataSource.initialize();
@@ -141,32 +129,50 @@ export class DataBaseV2 {
     }
   }
 
-  async insertDataLogs(parsedLog: any): Promise<void> {
+  async insertDataLogs(parsedLog: ParsedLog): Promise<void> {
     try {
-      loggerServer.trace('Data insert wating...');
+      loggerServer.trace('Checking if log entry exists...');
       const contractLogRepository = this.AppDataSource.getRepository(ContractLog);
-      const log = contractLogRepository.create(parsedLog);
-      await contractLogRepository.save(log);
-      loggerServer.info('Data inserted successfully');
+      const existingLog = await contractLogRepository.findOne({
+        where: { transactionHash: parsedLog.transactionHash }
+      });
+  
+      if (existingLog) {
+        loggerServer.info(`Log event ${parsedLog.eventName} already exist`, parsedLog.transactionHash); 
+      } else {
+        const log = contractLogRepository.create(parsedLog);
+        await contractLogRepository.save(log);
+        loggerServer.info('Log entry inserted successfully');
+      }
     } catch (error) {
-      loggerServer.error('Error inserting data:', error);
+      loggerServer.error('Error inserting log entry:', error);
       throw error;
     }
   }
+  
 
   async insertDataVolumes(timestamp: string, volume: number): Promise<void> {
     try {
-      loggerServer.trace('Data volumes insert wating...');
+      loggerServer.trace('Checking if data volume exists...');
       const contractVolumeRepository = this.AppDataSource.getRepository(ContractVolume);
-      const volumeRecord = contractVolumeRepository.create({ timestamp, volume });
-      await contractVolumeRepository.save(volumeRecord);
-      loggerServer.info('Data volumes inserted successfully');
+  
+      const existingVolume = await contractVolumeRepository.findOneBy({ timestamp });
+  
+      if (existingVolume) {
+        existingVolume.volume = volume;
+        await contractVolumeRepository.save(existingVolume);
+        loggerServer.info('Data volume updated successfully');
+      } else {
+        const volumeRecord = contractVolumeRepository.create({ timestamp, volume });
+        await contractVolumeRepository.save(volumeRecord);
+        loggerServer.info('Data volumes inserted successfully');
+      }
     } catch (error) {
       loggerServer.error('Error inserting data volumes:', error);
       throw error;
     }
   }
-
+  
   async getAllVolumes(): Promise<ContractVolume[]> {
     try {
       loggerServer.trace('getAllVolumes');
@@ -175,39 +181,6 @@ export class DataBaseV2 {
     } catch (error) {
       loggerServer.error('getAllVolumes:', error);
       throw error;
-    }
-  }
-
-  savedTx(array: ContractLog[]): void {
-    array.forEach(el => {
-      if (el.blockNumber !== undefined) {
-        this.saveTx.push(el.transactionHash);
-      }
-    });
-  }
-
-  savingTx(parsed: ParsedLog[]) {
-    parsed.forEach(el => {
-      _.union(this.saveTx, el.transactionHash);
-    });
-  }
-
-  savingTime(array: ContractVolume[]): void {
-    array.forEach(el => {
-      if (el.timestamp !== undefined) {
-        this.saveTime.push(el.timestamp.toISOString());
-      }
-    });
-  }
-
-  async init(): Promise<void> {
-    try {
-      const readAll = await this.getData();
-      this.savedTx(readAll);
-      const allVolumes = await this.getAllVolumes();
-      this.savingTime(allVolumes);
-    } catch (error) {
-      loggerServer.fatal("Init Database: ", error);
     }
   }
 }
