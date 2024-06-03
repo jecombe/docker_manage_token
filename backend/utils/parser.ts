@@ -1,18 +1,9 @@
 
-import dotenv from "dotenv";
 import { loggerServer } from "../utils/logger.js";
 import { LogEntry, ParsedLog } from "../utils/interfaces.js";
 import { Log, formatEther } from "viem";
 
-dotenv.config();
-
-export class Parser {
-
-
-  constructor() {
-  }
-
-  private initParsingLog(currentLog: LogEntry): ParsedLog {
+  export const initParsingLog = (currentLog: LogEntry): ParsedLog => {
     return {
       eventName: currentLog.eventName,
       from: "",
@@ -23,7 +14,7 @@ export class Parser {
     };
   }
 
-  parseLogListener(logs: Log[]): LogEntry[] {
+  export const parseLogListener = (logs: Log[]): LogEntry[] => {
     const convertedLogs: LogEntry[] = logs.map((log: any) => {
       const convertedLog: LogEntry = {
         args: log.args,
@@ -38,7 +29,7 @@ export class Parser {
     return convertedLogs;
   }
 
-  parsingWs(repWs: ParsedLog) {
+  export const parsingWs = (repWs: ParsedLog) => {
     return {
       blocknumber: repWs.blockNumber,
       eventname: repWs.eventName,
@@ -50,12 +41,12 @@ export class Parser {
   }
 
 
-  parseLogEntryToParsed(logs: LogEntry[]): ParsedLog[] {
+  export const parseLogEntryToParsed = (logs: LogEntry[]): ParsedLog[] => {
     return logs.reduce((accumulator: ParsedLog[], currentLog: LogEntry) => {      
 
-      const parsedLog: ParsedLog = this.initParsingLog(currentLog);
+      const parsedLog: ParsedLog = initParsingLog(currentLog);
       
-      if (!this.ParseLogEntryTransfer(currentLog, parsedLog) && !this.ParseLogEntryApproval(currentLog, parsedLog)) {
+      if (!parseLogEntryTransfer(currentLog, parsedLog) && !parseLogEntryApproval(currentLog, parsedLog)) {
         loggerServer.fatal("Uknow envent come here: ", currentLog);
       }
       
@@ -65,7 +56,7 @@ export class Parser {
     }, []);
   }
 
-  ParseLogEntryTransfer(currentLog: LogEntry, parsedLog: ParsedLog) {
+  export const parseLogEntryTransfer = (currentLog: LogEntry, parsedLog: ParsedLog) => {
     if (currentLog.eventName === "Transfer" && currentLog.args.from && currentLog.args.to) {
       parsedLog.from = currentLog.args.from;
       parsedLog.to = currentLog.args.to;
@@ -76,7 +67,7 @@ export class Parser {
     return false;
   }
 
-  ParseLogEntryApproval(currentLog: LogEntry, parsedLog: ParsedLog) {
+  export const parseLogEntryApproval = (currentLog: LogEntry, parsedLog: ParsedLog) => {
     if (currentLog.eventName === "Approval" && currentLog.args.owner && (currentLog.args.sender || currentLog.args.spender)) {
       parsedLog.from = currentLog.args.owner;
       parsedLog.to = (currentLog.args?.sender || currentLog.args?.spender) || '';
@@ -86,6 +77,3 @@ export class Parser {
     }
     return false;
   }
-
-
-}

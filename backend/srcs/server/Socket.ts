@@ -6,14 +6,13 @@ import { CustomSocket, ParsedLog, ResultVolume } from "../../utils/interfaces.js
 import { ServerV2 } from "./ServerV2.js";
 import { Socket } from "socket.io";
 import { UserManager } from "../users/Users.js";
-import { Parser } from "../Format.js";
+import { parsingWs } from "../../utils/parser.js";
 
 dotenv.config();
 
 export class SocketClient extends SocketIOServer {
   public managerUser: UserManager;
-  parser: Parser;
-  constructor(server: ServerV2, parser: Parser, managerUser: UserManager) {
+  constructor(server: ServerV2, managerUser: UserManager) {
 
     super(server.server, {
       cors: {
@@ -21,7 +20,6 @@ export class SocketClient extends SocketIOServer {
         methods: ["GET", "POST"]
       }
     });
-    this.parser = parser;
     this.managerUser = managerUser;
     this.startWebSocketServer();
   }
@@ -61,15 +59,15 @@ export class SocketClient extends SocketIOServer {
   }
 
   sendDataToClientWithAddress(socketId: string, data: ParsedLog) {
-    this.to(socketId).emit("data", this.parser.parsingWs(data));
+    this.to(socketId).emit("data", parsingWs(data));
   }
 
   sendWsToAllClients(data: ParsedLog) {
-    this.emit("allData", this.parser.parsingWs(data));
+    this.emit("allData", parsingWs(data));
   }
 
   sendWsToClient(socketId: string, data: ParsedLog) {
-    this.to(socketId).emit("myData", this.parser.parsingWs(data));
+    this.to(socketId).emit("myData", parsingWs(data));
   }
 
   sendWsVolumeToAllClients(data: ResultVolume) {

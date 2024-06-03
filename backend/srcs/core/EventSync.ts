@@ -7,9 +7,9 @@ import { Log, parseAbi } from "viem";
 import { calculateBlocksPerDay, getRangeBlock } from "../../utils/utils.js";
 import { DataBaseV2 } from "../database/DatabaseV2.js";
 import { ViemClient } from "../contract/ViemClient.js";
-import { Parser } from "../Format.js";
 import _ from "lodash";
 import { SocketClient } from "../server/Socket.js";
+import { parseLogEntryToParsed, parseLogListener } from "../../utils/parser.js";
 const ADDR_NULL = "0x0000000000000000000000000000000000000000";
 
 dotenv.config();
@@ -26,12 +26,10 @@ export class EventSync {
   blockNumber: bigint;
   database: DataBaseV2;
   socket: SocketClient;
-  parser: Parser;
 
-  constructor(viemClient: ViemClient, opt: Opt, database: DataBaseV2, socket: SocketClient, parser: Parser) {
+  constructor(viemClient: ViemClient, opt: Opt, database: DataBaseV2, socket: SocketClient) {
     this.database = database;
     this.socket = socket;
-    this.parser = parser;
     this.opt = opt;
     this.timeVolume = null;
     this.viemClient = viemClient;
@@ -78,8 +76,8 @@ export class EventSync {
   
   startFetchingLogs(callback: (logs: ParsedLog[]) => void) {
     this.viemClient.startListener((logs: Log[]) => {
-      const logEntry = this.parser.parseLogListener(logs);
-      const finalParse = this.parser.parseLogEntryToParsed(logEntry);
+      const logEntry = parseLogListener(logs);
+      const finalParse = parseLogEntryToParsed(logEntry);
       callback(finalParse);
     });
   }
@@ -114,7 +112,7 @@ export class EventSync {
 
       this.checkContractBorn(batchLogs);
 
-      return this.parser.parseLogEntryToParsed(batchLogs);
+      return parseLogEntryToParsed(batchLogs);
 
     } catch (error) {
       loggerServer.fatal("manageProcessRequest", error);
