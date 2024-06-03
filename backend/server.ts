@@ -55,7 +55,6 @@ const print = () => {
 };
 
 
-
 (async () => {
   try {
     const user = new UserManager();
@@ -68,8 +67,8 @@ const print = () => {
     print();
     await database.startBdd();
 
-      await database.deleteAllData();
-      await database.deleteAllVolumes();
+   // await database.deleteAllData();
+   // await database.deleteAllVolumes();
 
     await server.init();
 

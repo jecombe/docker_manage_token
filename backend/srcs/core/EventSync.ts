@@ -1,7 +1,7 @@
 
 import dotenv from "dotenv";
 import { loggerServer } from "../../utils/logger.js";
-import { compareDates, getRateLimits, loggingDate, removeTimeFromDate, subtractOneDay, waiting, waitingRate } from "../../utils/utils.js";
+import { calculateVolume, compareDates, getRateLimits, loggingDate, removeTimeFromDate, subtractOneDay, waiting, waitingRate } from "../../utils/utils.js";
 import { LogEntry, Opt, ParsedLog } from "../../utils/interfaces.js";
 import { Log, parseAbi } from "viem";
 import { calculateBlocksPerDay, getRangeBlock } from "../../utils/utils.js";
@@ -9,8 +9,7 @@ import { DataBaseV2 } from "../database/DatabaseV2.js";
 import { ViemClient } from "../contract/ViemClient.js";
 import _ from "lodash";
 import { SocketClient } from "../server/Socket.js";
-import { parseLogListener, parseLogEntryToParsed } from "../../utils/parser.js";
-
+import { parseLogEntryToParsed, parseLogListener } from "../../utils/parser.js";
 const ADDR_NULL = "0x0000000000000000000000000000000000000000";
 
 dotenv.config();
@@ -42,13 +41,65 @@ export class EventSync {
     this.timePerRequest = getRateLimits();
   }
 
-  async startAfterReset() {
+
+  //SENDER
+  async sendVolume(volume: number, isUpdate: boolean, timeVolume: Date,timestamp: string): Promise<void> {
+
+    if (isUpdate) {
+
+      this.database.updateDataVolumes(timeVolume, volume);
+      this.socket.sendWsVolumeToAllClients({ timestamp, volume: `${volume}` });
+    } else {
+      this.socket.sendWsVolumeToAllClients({ timestamp, volume: `${volume}` });
+      return this.database.insertDataVolumes(`${timestamp}`, volume);
+    }
+  }
+
+
+  async sendVolumeDaily(volume: number, timeVolume: Date | null): Promise<void> {    
+
+    if (timeVolume) {
+      const ts = removeTimeFromDate(timeVolume);
+      const timestamp = ts.toISOString().split('T')[0];
+      this.sendVolume(volume, false, timeVolume,timestamp);
+    }
+  }
+
+  async sendData(parsed: ParsedLog[], volume: number, isRealTime: boolean, timeVolume:Date | null): Promise<void> {
     try {
-      this.isFetching = true;
-      await this.getLogsFromHttp();
+
+      this.sendVolumeDaily(volume, timeVolume);
+
+      for (const el of parsed) {
+        await this.sendLog(el, isRealTime);
+      }
     } catch (error) {
-      loggerServer.fatal("resetFetching: ", error);
-      this.isFetching = false;
+      loggerServer.fatal("sendData: ", error);
+      throw error;
+    }
+  }
+
+  async sendLogsWithCheck(parsed: ParsedLog[], isRealTime: boolean, timeVolume: Date | null): Promise<void> {
+    try {
+      if (!_.isEmpty(parsed)) {
+        await this.sendData(parsed, Number(calculateVolume(parsed)), isRealTime, timeVolume);
+      } else {
+        loggerServer.warn("Log Empty");
+      }
+    } catch (error) {
+      loggerServer.fatal("sendLogsWithCheck", error);
+      throw error;
+    }
+  }
+
+  async sendLog(data: ParsedLog, isRealTime: boolean): Promise<void> {
+    try {
+      await this.database.insertDataLogs(data);
+      this.socket.sendingClient(data, isRealTime);
+    } catch (error) {
+      console.log(this.database.saveTx);
+      loggerServer.fatal("SendLog",error);
+      throw error;
     }
   }
 
@@ -60,9 +111,7 @@ export class EventSync {
   
   private checkContractBorn(logs: LogEntry[]) {
     logs.map((currentLog: LogEntry) => {      
-
       this.contractIsPreviousOwner(currentLog);      
-  
     }, []);
   }
 
@@ -209,81 +258,22 @@ export class EventSync {
     });
   }
 
+  async startAfterReset() {
+    try {
+      this.isFetching = true;
+      await this.getLogsFromHttp();
+    } catch (error) {
+      loggerServer.fatal("resetFetching: ", error);
+      this.isFetching = false;
+    }
+  }
+
   async init(): Promise<void> {
     try {
       this.ListeningEventLogs();
       await this.getLogsFromHttp();
     } catch (error) {
       loggerServer.fatal("Init Core: ", error);
-      throw error;
-    }
-  }
-
-  async sendVolume(volume: number, isUpdate: boolean, timeVolume: Date,timestamp: string): Promise<void> {
-
-    if (isUpdate) {
-
-      this.database.updateDataVolumes(timeVolume, volume);
-      this.socket.sendWsVolumeToAllClients({ timestamp, volume: `${volume}` });
-    } else {
-      this.socket.sendWsVolumeToAllClients({ timestamp, volume: `${volume}` });
-      return this.database.insertDataVolumes(`${timestamp}`, volume);
-    }
-  }
-
-  calculateVolume(logs: ParsedLog[]): string {
-    let volume = 0;
-    for (const log of logs) {
-      if (log.eventName === 'Transfer') {
-        volume += log.value;
-      }
-    }
-    return volume.toString();
-  }
-
-  async sendVolumeDaily(volume: number, timeVolume: Date | null): Promise<void> {    
-
-    if (timeVolume) {
-      const ts = removeTimeFromDate(timeVolume);
-      const timestamp = ts.toISOString().split('T')[0];
-      this.sendVolume(volume, false, timeVolume,timestamp);
-    }
-  }
-
-  async sendData(parsed: ParsedLog[], volume: number, isRealTime: boolean, timeVolume:Date | null): Promise<void> {
-    try {
-
-      this.sendVolumeDaily(volume, timeVolume);
-
-      for (const el of parsed) {
-        await this.sendLog(el, isRealTime);
-      }
-    } catch (error) {
-      loggerServer.fatal("sendData: ", error);
-      throw error;
-    }
-  }
-
-  async sendLogsWithCheck(parsed: ParsedLog[], isRealTime: boolean, timeVolume: Date | null): Promise<void> {
-    try {
-      if (!_.isEmpty(parsed)) {
-        await this.sendData(parsed, Number(this.calculateVolume(parsed)), isRealTime, timeVolume);
-      } else {
-        loggerServer.warn("Log Empty");
-      }
-    } catch (error) {
-      loggerServer.fatal("sendLogsWithCheck", error);
-      throw error;
-    }
-  }
-
-  async sendLog(data: ParsedLog, isRealTime: boolean): Promise<void> {
-    try {
-      await this.database.insertDataLogs(data);
-      this.socket.sendingClient(data, isRealTime);
-    } catch (error) {
-      console.log(this.database.saveTx);
-      loggerServer.fatal("SendLog",error);
       throw error;
     }
   }

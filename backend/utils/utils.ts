@@ -1,3 +1,4 @@
+import { ParsedLog } from "./interfaces";
 
 export const waiting = async (timer: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, timer));
@@ -79,4 +80,14 @@ export const isElementInArray = (array: string[], element: Date) => {
   const timestamp = ts.toISOString().split('T')[0];
 
   return array.map(String).includes(timestamp);
+};
+
+export const calculateVolume = (logs: ParsedLog[]): string => {
+  let volume = 0;
+  for (const log of logs) {
+    if (log.eventName === 'Transfer') {
+      volume += log.value;
+    }
+  }
+  return volume.toString();
 };
