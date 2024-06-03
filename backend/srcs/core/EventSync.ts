@@ -9,7 +9,8 @@ import { DataBaseV2 } from "../database/DatabaseV2.js";
 import { ViemClient } from "../contract/ViemClient.js";
 import _ from "lodash";
 import { SocketClient } from "../server/Socket.js";
-import { parseLogEntryToParsed, parseLogListener } from "../../utils/parser.js";
+import { parseLogListener, parseLogEntryToParsed } from "../../utils/parser.js";
+
 const ADDR_NULL = "0x0000000000000000000000000000000000000000";
 
 dotenv.config();
